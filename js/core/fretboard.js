@@ -127,7 +127,7 @@ const FretboardRenderer = {
           else displayX = (fretPos[f - 1] + fretPos[f]) / 2;
 
           const y = padY + s * stringSpacing;
-          let fill = '#74b9cf80;
+          let fill = '#74b9cf80';
           let textColor = '#fff';
           let r = 9;
 
