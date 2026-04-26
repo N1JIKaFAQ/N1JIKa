@@ -1,50 +1,61 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<meta charset='utf-8'>
-		<title>究竟是个流氓的世界</title>
-  		<style>
-			body {
-				margin: 0;
-			}
-		</style>
-	</head>
-	<body>
-		<div style="
-            background-color:rgb(216, 218, 217);
-            text-align: center;
-            padding: 40px;
-        ">
-			<img src='XXX.png' alt='究竟是个流氓的世界' width="80px" height="80px">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电吉他乐理学习计划 - 6个月从零到作曲</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <button id="menu-btn" class="icon-btn">☰</button>
+    <h1 id="page-title">🎸 吉他乐理 · 半年计划</h1>
+    <span style="font-size:12px;color:var(--text-muted);font-weight:300;letter-spacing:1px;display:none" id="ok-label">OK</span>
+    <div id="streak-display">🔥 <span id="streak-count">0</span> 天</div>
+  </header>
 
-		</div>
-        <div style="
-            max-width: 700px;
-            text-align: center;
-            margin: 30px auto;
-            padding: 15px;
-            line-height: 1.6;
-        ">
-            <p>你好啊，我是邓博韬，这是我做的第一个网站，在我知道我是谁之前就自称为流氓吧，“仓皇南北，碌碌东西”是为“流”，“品行恶劣、不务正业”是为“氓”。</p>
-        </div>
-        <div style="
-            max-width: 700px;
-            text-align: center;
-            margin: 30px auto;
-            padding: 15px;
-            line-height: 1.6;
-        ">
-            <p></p>
-        </div>
-		<div style="
-            background-color:rgb(216, 218, 217);
-            text-align: center;
-            padding: 40px;
-        ">
-            <p>我的网站</p>
-            <a href='https://www.bilibili.com/video/BV1hY411j7UM?spm_id_from=333.788.videopod.sections&vd_source=f68848d6fca244b9efa6de609fa2b0d4'>友情链接</a> |
-            <a href='https://space.bilibili.com/399930125?spm_id_from=333.788.0.0'>流氓的b站主页</a>
-		</div>
-	</body>
+  <nav id="nav-bar">
+    <button class="nav-btn active" data-view="dashboard">📊 仪表盘</button>
+    <button class="nav-btn" data-view="lesson">📖 课程</button>
+    <button class="nav-btn" data-view="fretboard">🎸 指板</button>
+    <button class="nav-btn" data-view="chords">🎵 和弦库</button>
+    <button class="nav-btn" data-view="riffs">🎼 Riff库</button>
+    <button class="nav-btn" data-view="progressions">🔀 进行</button>
+    <button class="nav-btn" data-view="stats">📈 统计</button>
+  </nav>
+
+  <main id="main-content">
+    <!-- Views rendered here by JavaScript -->
+  </main>
+</div>
+
+<!-- Core -->
+<script src="js/core/storage.js"></script>
+<script src="js/core/music-theory.js"></script>
+<script src="js/core/fretboard.js"></script>
+
+<!-- Data -->
+<script src="js/data/lessons.js"></script>
+<script src="js/data/lessons-ext.js"></script>
+<script src="js/data/quizbank.js"></script>
+<script src="js/data/chords.js"></script>
+<script src="js/data/riffs.js"></script>
+<script src="js/data/progressions.js"></script>
+
+<!-- Views -->
+<script src="js/views/dashboard.js"></script>
+<script src="js/views/lesson.js"></script>
+<script src="js/views/fretboard.js"></script>
+<script src="js/views/stats.js"></script>
+<script src="js/views/chords.js"></script>
+<script src="js/views/riffs.js"></script>
+<script src="js/views/progressions.js"></script>
+
+<!-- AI Chat -->
+<script src="js/views/ai-chat.js"></script>
+
+<!-- App -->
+<script src="js/app.js"></script>
+</body>
 </html>
-		
