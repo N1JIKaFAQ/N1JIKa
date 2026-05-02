@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欧洲15日旅行 · 路线+行程</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden; height: 100vh; }
+#map { height: 100vh; width: 100%; }
+
+/* Toggle buttons */
+.toggle-bar {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+  border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: flex; border: 1px solid rgba(0,0,0,0.08); overflow: hidden;
+}
+.toggle-btn {
+  padding: 10px 24px; border: none; background: transparent; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: #888; transition: all 0.25s;
+  font-family: inherit; white-space: nowrap;
+}
+.toggle-btn.active { color: #fff; background: #e74c3c; }
+.toggle-btn:first-child { border-radius: 30px 0 0 30px; }
+.toggle-btn:last-child { border-radius: 0 30px 30px 0; }
+
+/* Content panel with static HTML */
+#content-panel {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 500;
+  background: #f8f9fa; overflow-y: auto; display: none;
+  padding: 70px 10px 30px;
+}
+#content-panel.open { display: block; }
+#content-inner {
+  max-width: 780px; margin: 0 auto; background: #fff; border-radius: 12px;
+  padding: 28px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  font-size: 14px; line-height: 1.8; color: #444;
+}
+.itinerary-title {
+  font-size: 24px; font-weight: 700; color: #222;
+  padding-bottom: 8px; border-bottom: 3px solid #e74c3c; margin-bottom: 12px;
+}
+.itinerary-sub {
+  font-size: 14px; color: #666; margin-bottom: 16px;
+}
+.section-title {
+  font-size: 18px; font-weight: 600; color: #222; margin: 24px 0 8px;
+  padding-bottom: 4px; border-bottom: 2px solid #e74c3c;
+}
+.day-title {
+  font-size: 16px; font-weight: 600; color: #c0392b; margin: 20px 0 4px;
+}
+.day-meta { font-size: 13px; color: #888; margin-bottom: 4px; }
+.day-table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 13px; }
+.day-table td { padding: 4px 8px; border: 1px solid #eee; vertical-align: top; }
+.day-table td:first-child { white-space: nowrap; color: #888; width: 80px; }
+.day-table td:nth-child(2) { font-weight: 600; width: 80px; }
+.tip { background: #fdf6f5; border-left: 3px solid #e74c3c; padding: 6px 14px; border-radius: 0 6px 6px 0; margin: 4px 0 12px; font-size: 13px; color: #555; }
+.divider { border: none; border-top: 2px solid #eee; margin: 16px 0; }
+.tag { display: inline-block; background: #e74c3c; color: #fff; border-radius: 10px; padding: 0 10px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+.tag.blue { background: #3498db; }
+.tag.green { background: #27ae60; }
+.tag.purple { background: #9b59b6; }
+.tag.orange { background: #e67e22; }
+.tag.teal { background: #1abc9c; }
+.tag.gray { background: #7f8c8d; }
+
+/* Legend */
+.legend-box {
+  background: white; padding: 10px 14px; border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12); font-size: 12px; line-height: 1.7;
+}
+.legend-box h4 { margin: 0 0 4px; font-size: 13px; }
+.legend-box .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+/* Map */
+.info-label {
+  background: rgba(255,255,255,0.92); padding: 3px 10px; border-radius: 5px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.12); font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(0,0,0,0.06); white-space: nowrap;
+}
+.popup-box { font-size: 13px; line-height: 1.6; max-width: 280px; }
+.popup-box h3 { margin: 0 0 2px; font-size: 15px; }
+.popup-box .day-tag { display: inline-block; border-radius: 8px; padding: 0 8px; font-size: 11px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.popup-box .section { margin-top: 5px; padding-top: 5px; border-top: 1px solid #eee; }
+.popup-box .section-title { font-weight: 600; color: #555; font-size: 11px; }
+.popup-box ul { margin: 0; padding-left: 16px; }
+.popup-box .transport { background: #f8f9fa; border-radius: 5px; padding: 4px 8px; margin-top: 5px; font-size: 11px; border-left: 3px solid #888; }
+.leaflet-popup-content { margin: 8px 12px; }
+
+@media (max-width:600px) {
+  .toggle-btn { padding: 8px 14px; font-size: 12px; }
+  #content-inner { padding: 16px; font-size: 13px; }
+}
+</style>
+<!-- 切换函数独立定义，确保内容视图不受 Leaflet 加载影响 -->
+<script>
+function switchView(v) {
+  document.getElementById('map').style.display = v === 'map' ? 'block' : 'none';
+  document.getElementById('content-panel').classList.toggle('open', v === 'content');
+  document.getElementById('btn-map').classList.toggle('active', v === 'map');
+  document.getElementById('btn-content').classList.toggle('active', v === 'content');
+  if (v === 'map' && typeof map !== 'undefined') try { map.invalidateSize(); } catch(e) {}
+}
+</script>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <button class="toggle-btn active" id="btn-map" onclick="switchView('map')">🗺️ 地图</button>
+  <button class="toggle-btn" id="btn-content" onclick="switchView('content')">📋 完整行程</button>
+</div>
+
+<div id="map"></div>
+
+<div id="content-panel">
+<div id="content-inner">
+
+<div class="itinerary-title">🇪🇺 欧洲15日旅行计划</div>
+<div class="itinerary-sub">👥 你和好朋友（两人） · 💰 预算 ¥20,000（一人一万） · 🛫 不含机票 · 7月出发 ☀️</div>
+<div class="itinerary-sub">🗺️ 米兰 → 科莫湖 → 多洛米蒂 → 奥地利 → 德国</div>
+
+<hr class="divider">
+
+<div class="section-title">🗺️ 路线总览</div>
+
+<div style="font-size:13px;line-height:2;margin:8px 0;">
+<span class="tag">Day 1</span> 🇮🇹 米兰·落地探索 🏛️<br>
+<span class="tag blue">Day 2</span> 🌊 科莫湖·住一晚看日落 🏨<br>
+<span class="tag green">Day 3</span> 🏔️ 科莫→多洛米蒂·抵达Ortisei<br>
+<span class="tag green">Day 4</span> ⛰️ 刀锋山 Seceda + 休斯高原 🌼<br>
+<span class="tag green">Day 5</span> 📸 富内斯山谷+Carezza湖→🇦🇹 因斯布鲁克<br>
+<span class="tag purple">Day 6</span> 🚠 因斯布鲁克·北链山+施华洛世奇<br>
+<span class="tag purple">Day 7</span> 🏰 因斯布鲁克→萨尔茨堡<br>
+<span class="tag orange">Day 8</span> 🖼️ 萨尔茨堡→湖区·圣沃尔夫冈过夜 🌅<br>
+<span class="tag orange">Day 9</span> 🏞️ 湖区→🇩🇪 慕尼黑半日🍺→菲森<br>
+<span class="tag teal">Day 10</span> 🦢 新天鹅堡晨光→浪漫之路·奥格斯堡<br>
+<span class="tag teal">Day 11</span> 🏘️ 浪漫之路·诺德林根+丁克尔斯比尔<br>
+<span class="tag teal">Day 12</span> 👑 浪漫之路·罗滕堡·守夜人巡游 🕯️<br>
+<span class="tag gray">Day 13</span> 🏛️ 罗滕堡→纽伦堡皇帝堡<br>
+<span class="tag gray">Day 14</span> 🏘️ 班贝格·弗兰肯的威尼斯 🛶<br>
+<span class="tag gray">Day 15</span> 🛫 纽伦堡收尾→飞回（NUE/FRA）
+</div>
+
+<hr class="divider">
+
+<div class="section-title">🇮🇹 意大利篇</div>
+
+<div class="day-title">Day 1 · 米兰 · 落地探索 🏛️</div>
+<div class="day-meta">🏨 米兰市区 ｜ 🚇 步行+地铁</div>
+<table class="day-table">
+<tr><td>🛬 上午</td><td>抵达+入住</td><td>机场大巴/地铁到市区 → 放行李</td></tr>
+<tr><td>🥐 中午</td><td>大教堂区</td><td>Luini炸帕尼诺 → 埃马努埃莱二世拱廊 → 米兰大教堂登顶(楼梯€15)</td></tr>
+<tr><td>🎨 下午</td><td>艺术+城堡</td><td>最后的晚餐(需提前2月抢票) → 斯福尔扎城堡 → 森皮奥内公园</td></tr>
+<tr><td>🍕 晚上</td><td>吃顿好的</td><td>Pizzeria Spontini → Gelato 🍦</td></tr>
+</table>
+<div class="tip">💡 大教堂登顶楼梯€15 vs 电梯€20，楼梯值。最后的晚餐 cenacolovinciano.org</div>
+
+<div class="day-title">Day 2 · 科莫湖 · 住一晚看日落 🌊</div>
+<div class="day-meta">🏨 Bellagio或Varenna住一晚 ｜ 🚄 米兰→科莫 1h</div>
+<div style="font-size:13px;color:#666;margin:2px 0 6px;">Milano 🚄1h→ Varenna 🚢15min→ Bellagio 🏨</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>米兰→湖上</td><td>Milano→Varenna(1h) → 逛彩色房子+湖边café</td></tr>
+<tr><td>🚢 中午</td><td>跳岛Bellagio</td><td>Varenna→Bellagio(15min) → 午饭</td></tr>
+<tr><td>🌤️ 下午</td><td>慢游+入住</td><td>Bellagio办入住 → 环湖散步 → 跳进湖里游泳🏊</td></tr>
+<tr><td>🌅 傍晚</td><td>真正的科莫湖</td><td>再坐船去Varenna看夕阳 → 游客散去，湖面金光✨</td></tr>
+<tr><td>🌙 晚上</td><td>湖畔晚餐</td><td>Bellagio湖边餐厅 → 散步回住宿</td></tr>
+</table>
+<div class="tip">🌅 科莫湖住一晚是正确选择——白天全是旅行团，傍晚才是它的样子</div>
+
+<div class="day-title">Day 3 · 科莫湖 → 多洛米蒂 🏔️</div>
+<div class="day-meta">🏨 Ortisei ｜ 🚄🚌 科莫→米兰→Bolzano→Ortisei ≈ 5h</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>告别科莫</td><td>Bellagio→Varenna→Milano(1.5h)</td></tr>
+<tr><td>🚄 中午</td><td>奔赴山里</td><td>Milano→Bolzano(2h45) → 午饭+逛南蒂罗尔小城</td></tr>
+<tr><td>🚌 下午</td><td>进山！</td><td>Bolzano→Ortisei(350路1h) → 入住🏨</td></tr>
+<tr><td>🌙 晚上</td><td>阿尔卑斯初夜</td><td>Canederli(南蒂罗尔饺子) + Apple Strudel 🍎</td></tr>
+</table>
+
+<div class="day-title">Day 4 · 多洛米蒂 · 双峰一日 ⛰️🌼</div>
+<div class="day-meta">🏨 Ortisei（连住） ｜ 🚠 缆车+徒步</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>刀锋山 Seceda</td><td>🚠上刀锋山 → 山顶10min到最佳机位 → 和好朋友拍合影📸</td></tr>
+<tr><td>🌤️ 下午</td><td>休斯高原</td><td>🚠转场Alpe di Siusi → 野花+牛铃 → 轻松徒步2-3h</td></tr>
+<tr><td>🌅 傍晚</td><td>小镇时光</td><td>逛Ortisei木雕店 → 找个高处看日照金山🌇</td></tr>
+<tr><td>🌙 晚上</td><td>吃当地味</td><td>Speck熏火腿 + 南蒂罗尔白葡萄酒 🍷</td></tr>
+</table>
+<div class="tip">⚠️ 缆车下午4-5点停运。山顶比山下低10°C，带外套</div>
+
+<div class="day-title">Day 5 · 富内斯山谷+彩色湖 → 🇦🇹 因斯布鲁克</div>
+<div class="day-meta">🏨 Innsbruck ｜ 🚌🚄 巴士+火车</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>富内斯山谷</td><td>Ortisei→Val di Funes(40min) → 圣约翰教堂孤独教堂 → Santa Maddalena</td></tr>
+<tr><td>💎 中午</td><td>Carezza湖</td><td>Lago di Carezza 翡翠湖(30min)</td></tr>
+<tr><td>🚄 下午</td><td>北上Innsbruck</td><td>Bolzano→Innsbruck(1.5h, ~2-3pm到) → 入住</td></tr>
+<tr><td>🏛️ 傍晚</td><td>开逛老城</td><td>黄金屋顶 → 玛丽亚·特蕾西娅大街 → 🍺 第一顿奥地利晚餐</td></tr>
+</table>
+
+<hr class="divider">
+
+<div class="section-title">🇦🇹 奥地利篇</div>
+
+<div class="day-title">Day 6 · 因斯布鲁克全天 🚠💎</div>
+<div class="day-meta">🏨 Innsbruck（连住） ｜ 🚶🚌 步行+公交</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>北链山缆车</td><td>从市中心上阿尔卑斯山顶！30min到2300m → 俯瞰全城+河谷</td></tr>
+<tr><td>💎 下午</td><td>施华洛世奇</td><td>Innsbruck→瓦滕斯(20min) → 水晶巨人头(会喷水！)</td></tr>
+<tr><td>🌙 晚上</td><td>奥地利晚餐</td><td>换个馆子，超市买点零食明天路上吃</td></tr>
+</table>
+
+<div class="day-title">Day 7 · 因斯布鲁克 → 萨尔茨堡 🏰</div>
+<div class="day-meta">🏨 萨尔茨堡 ｜ 🚄 Innsbruck→Salzburg 2h</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>去萨尔茨堡</td><td>🚄 Innsbruck→Salzburg(2h) → 🏨 放行李</td></tr>
+<tr><td>🏰 午后</td><td>要塞城堡</td><td>霍亨萨尔茨堡要塞(欧洲最大中世纪城堡) → 俯瞰全城+远山</td></tr>
+<tr><td>🎵 下午</td><td>莫扎特+老城</td><td>粮食胡同(莫扎特故居) → 米拉贝尔花园(音乐之声🌷) → 莫扎特巧克力</td></tr>
+<tr><td>🌙 晚上</td><td>萨尔茨堡之夜</td><td>老城晚餐 → 河边散步看要塞夜景</td></tr>
+</table>
+
+<div class="day-title">Day 8 · 萨尔茨堡 → 湖区过夜 🖼️🌅</div>
+<div class="day-meta">🏨 圣沃尔夫冈（推荐） ｜ 🚌 公交</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>萨尔茨堡收尾</td><td>再逛逛老城或海尔布伦宫戏水💦</td></tr>
+<tr><td>🚌 下午</td><td>进湖区</td><td>Salzburg→圣沃尔夫冈(1h，人少舒服👍)</td></tr>
+<tr><td>🏨 入住</td><td>湖区过夜！</td><td>湖边住一晚 → 租小船🚣或跳湖游泳🏊 → 散步🥾</td></tr>
+<tr><td>🌅 傍晚</td><td>湖区日落</td><td>游客散去，湖面金光+远山剪影 → 湖畔晚餐</td></tr>
+</table>
+<div class="tip">🖼️ 推荐圣沃尔夫冈，比哈尔施塔特更安静、更有度假感</div>
+
+<hr class="divider">
+
+<div class="section-title">🇩🇪 德国篇</div>
+
+<div class="day-title">Day 9 · 湖区晨光 → 慕尼黑半日 → 菲森 🍺</div>
+<div class="day-meta">🏨 Füssen ｜ 🚄 湖区→Salzburg→München→Füssen</div>
+<table class="day-table">
+<tr><td>☀️ 清晨</td><td>湖区晨景</td><td>早起！趁湖面起雾、晨光照山 → 📸最美时刻</td></tr>
+<tr><td>🚄 上午</td><td>进军德国！</td><td>St. Wolfgang→Salzburg→München(2h) ~10am到</td></tr>
+<tr><td>🍺 中午</td><td>慕尼黑半日</td><td>玛丽恩广场 → 新市政厅钟琴玩偶🕰️ → 皇家啤酒屋Hofbräuhaus🍺</td></tr>
+<tr><td>🚄 下午</td><td>前往菲森</td><td>München→Füssen(RE 2h, ~3-5pm到) → 入住</td></tr>
+<tr><td>🌙 晚上</td><td>菲森老城</td><td>逛逛彩色老城 → 阿尔卑斯山脚晚餐</td></tr>
+</table>
+<div class="tip">🍺 皇家啤酒屋Hofbräuhaus是慕尼黑必去！1589年开业 🦢 新天鹅堡明早上去</div>
+
+<div class="day-title">Day 10 · 新天鹅堡晨光 → 奥格斯堡 🦢🏛️</div>
+<div class="day-meta">🏨 奥格斯堡 ｜ 🚄 Füssen→新天鹅堡→Augsburg</div>
+<table class="day-table">
+<tr><td>🦢 上午</td><td>新天鹅堡！</td><td>Füssen→新天鹅堡(10min) → 玛丽安桥拍全景🏰 → 城堡内部(门票已订)</td></tr>
+<tr><td>🚄 中午</td><td>前往奥格斯堡</td><td>Füssen→Augsburg(RE 2h) → 入住</td></tr>
+<tr><td>🏛️ 下午</td><td>奥格斯堡老城</td><td>Fuggerei富格社区(€0.88/年😱) → 市政厅金色大厅</td></tr>
+<tr><td>🌙 晚上</td><td>啤酒花园🍺</td><td>巴伐利亚第三城市但很chill</td></tr>
+</table>
+<div class="tip">⚠️ 新天鹅堡门票必须提前2-4周订 neuschwanstein.de 早上去光线好人也少</div>
+
+<div class="day-title">Day 11 · 陨石坑小镇 + 中世纪城墙 🏘️</div>
+<div class="day-meta">🏨 丁克尔斯比尔或罗滕堡 ｜ 🚄🚌</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>诺德林根</td><td>Augsburg→Nördlingen(RE 1h) → 爬丹尼尔塔看陨石坑小镇🌍</td></tr>
+<tr><td>🚌 下午</td><td>丁克尔斯比尔</td><td>851路(40min) → 完整城墙+彩色木筋房🏘️ → 比罗滕堡安静</td></tr>
+<tr><td>🏨 晚上</td><td>住下</td><td>住Dinkelsbühl或继续往罗滕堡</td></tr>
+</table>
+<div class="tip">🌍 Nördlingen建在1500万年前陨石坑里，教堂都带圆顶</div>
+
+<div class="day-title">Day 12 · 👑 罗滕堡 · 浪漫之路王冠</div>
+<div class="day-meta">🏨 Rothenburg ob der Tauber（必住城内！）</div>
+<table class="day-table">
+<tr><td>🚌 上午</td><td>进城</td><td>Dinkelsbühl→Rothenburg(1h) → 住老城内 → 出门就是童话</td></tr>
+<tr><td>📸 下午</td><td>经典三件套</td><td>步云莱Plönlein📸 → 市政厅登顶220级 → 古城墙漫步(免费🆓)</td></tr>
+<tr><td>🍪 傍晚</td><td>雪球Schneeballen</td><td>罗滕堡特产300年历史 → 圣诞博物馆🎄</td></tr>
+<tr><td>🕯️ 晚上</td><td>夜巡人巡游</td><td>Night Watchman Tour(€12) 穿黑袍提烛火夜游 —— 必参加！</td></tr>
+</table>
+<div class="tip">👑 罗滕堡是整个浪漫之路的精华。必住一晚——白天全是半日游，傍晚+清晨才是真正的它</div>
+
+<div class="day-title">Day 13 · 罗滕堡晨光 → 纽伦堡 🏛️</div>
+<div class="day-meta">🏨 纽伦堡 Nürnberg ｜ 🚄 Rothenburg→Nürnberg 1h直达</div>
+<table class="day-table">
+<tr><td>🌅 清晨</td><td>无人的罗滕堡</td><td>6:00起床！趁旅行团没到走一圈空城墙+Plönlein📸 → 买百龄油🛍️</td></tr>
+<tr><td>🚄 上午</td><td>1h到纽伦堡</td><td>Rothenburg→Nürnberg(RE 1h直达, ~10am到) → 入住</td></tr>
+<tr><td>🏛️ 下午</td><td>纽伦堡老城</td><td>皇帝堡Kaiserburg → 美泉⛲ → 圣洛伦茨教堂</td></tr>
+<tr><td>🍺 晚上</td><td>弗兰肯啤酒</td><td>纽伦堡烤肠Nürnberger Rostbratwurst(特产) 🥩</td></tr>
+</table>
+
+<div class="day-title">Day 14 · 班贝格一日游 🏘️🌊</div>
+<div class="day-meta">🏨 纽伦堡（连住） ｜ 🚄 Nürnberg→Bamberg 30min</div>
+<table class="day-table">
+<tr><td>🚄 上午</td><td>30min到班贝格</td><td>Nürnberg→Bamberg(RE 30min, ~9am到)</td></tr>
+<tr><td>🏘️ 全天</td><td>班贝格老城</td><td>UNESCO世界遗产水城 🛶 水中市政厅(必拍📸) → 班贝格大教堂 → 小威尼斯🌷</td></tr>
+<tr><td>🍺 下午</td><td>世界最老啤酒馆</td><td>Schlenkerla 烟熏啤酒(1405年开业！世界唯一)</td></tr>
+<tr><td>🚄 晚上</td><td>回纽伦堡</td><td>Bamberg→Nürnberg(30min) → 最后一晚</td></tr>
+</table>
+<div class="tip">🌊 班贝格是德国隐藏的瑰宝——全德国最大保存完好的古城。🍺 Schlenkerla烟熏啤酒只有班贝格喝得到</div>
+
+<div class="day-title">Day 15 · 纽伦堡收尾 → 飞回 🛫</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>自由探索</td><td>再逛逛皇帝堡或买纽伦堡姜饼Lebkuchen当伴手礼🍪</td></tr>
+<tr><td>🚄🛫 下午</td><td>去机场飞回</td><td>选一：纽伦堡NUE(地铁U2 15min) 或 法兰克福FRA(ICE 2.5h)</td></tr>
+</table>
+
+<hr class="divider">
+
+<div class="section-title">💰 预算总览</div>
+<table class="day-table">
+<tr><td>项目</td><td>意大利段(5天)</td><td>奥+德段(10天)</td><td>总计</td></tr>
+<tr><td>🏠 住宿</td><td>¥3,200~4,800</td><td>¥5,600~8,400</td><td>¥8,800~13,200</td></tr>
+<tr><td>🚄 城际交通</td><td>¥1,200~2,000</td><td>¥2,000~3,000</td><td>¥3,200~5,000</td></tr>
+<tr><td>🍝 餐饮</td><td>¥1,500~2,500</td><td>¥3,000~5,000</td><td>¥4,500~7,500</td></tr>
+<tr><td>🎫 门票/缆车</td><td>¥800~1,500</td><td>¥800~1,500</td><td>¥1,600~3,000</td></tr>
+<tr><td>🚃 市内交通</td><td>¥300~500</td><td>¥600~1,000</td><td>¥900~1,500</td></tr>
+<tr><td><b>小计</b></td><td><b>¥7,000~11,300</b></td><td><b>¥12,000~18,900</b></td><td><b>¥19,000~30,200</b></td></tr>
+</table>
+<div class="tip">💡 一人一万总共两万，意大利段花7000-11000，还剩一万左右给奥德，够用</div>
+
+<hr class="divider">
+
+<div class="section-title">📋 15天速览</div>
+<div style="font-size:13px;line-height:2;">
+Day 1 &nbsp; 🇮🇹 米兰 · 大教堂+Luini+斯福尔扎城堡<br>
+Day 2 &nbsp; 🌊 科莫湖 · Varenna Bellagio 🏨 住Bellagio<br>
+Day 3 &nbsp; 🏔️ 科莫→Ortisei·多洛米蒂进山<br>
+Day 4 &nbsp; ⛰️ Seceda刀锋山+Alpe di Siusi休斯高原<br>
+Day 5 &nbsp; 📸 富内斯山谷+Carezza湖 → 🇦🇹 Innsbruck<br>
+Day 6 &nbsp; 🚠 北链山缆车+施华洛世奇水晶世界<br>
+Day 7 &nbsp; 🏰 Innsbruck→萨尔茨堡·要塞城堡<br>
+Day 8 &nbsp; 🖼️ 萨尔茨堡→湖区·圣沃尔夫冈过夜 🌅<br>
+Day 9 &nbsp; 🏞️ 湖区晨光→🇩🇪 慕尼黑半日🍺 → 住Füssen<br>
+Day 10 🦢 新天鹅堡晨光 → 奥格斯堡·Fuggerei<br>
+Day 11 🏘️ 诺德林根陨石坑+丁克尔斯比尔<br>
+Day 12 👑 罗滕堡·守夜人巡游🕯️<br>
+Day 13 🏛️ 罗滕堡→纽伦堡·皇帝堡<br>
+Day 14 🏘️ 班贝格·水中市政厅·烟熏啤酒🍺<br>
+Day 15 🛫 纽伦堡收尾→飞回（NUE/FRA二选一）
+</div>
+
+</div>
+</div>
+
+<script>
+// ====================================================================
+//  MAP  (CDN 加载失败则跳过，不影响切换功能)
+// ====================================================================
+var map = null;
+if (typeof L !== 'undefined') {
+
+map = L.map('map').setView([47.5, 11.8], 6.5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18, attribution: '© OpenStreetMap'
+}).addTo(map);
+
+const DAYS = { d1:'#e74c3c', d2:'#3498db', d3:'#27ae60', d4:'#9b59b6', d5:'#e67e22', d6:'#1abc9c', d7:'#7f8c8d' };
+
+const POI = [
+  {id:'milano',     pos:[45.4642,9.1900],   d:'d1', l:'Day 1', e:'🏛️', t:'米兰', g:'落地日', a:['⛪ 米兰大教堂登顶(楼梯€15)','🏛️ 埃马努埃莱二世拱廊','🎨 最后的晚餐(提前2月约)','🏰 斯福尔扎城堡'], f:['🥐 Luini 炸帕尼诺','🍕 Pizzeria Spontini','🍦 Gelato']},
+  {id:'como',       pos:[45.8090,9.0860],   d:'d2', l:'Day 2', e:'🌊', t:'科莫湖', g:'住一晚看日落', a:['🏘️ Bellagio珍珠小镇','🏡 Varenna最美日落','🚢 游船€8/程','🚡 科莫缆车€6'], f:['🥪 Bellagio湖边午餐','☕ Varenna湖畔咖啡'], tr:{m:'🚄 火车',d:'米兰→Como San Giovanni €5-10'}},
+  {id:'ortisei',    pos:[46.5756,11.6718],  d:'d3', l:'Day 3-4', e:'🏔️', t:'多洛米蒂·Ortisei', g:'阿尔卑斯精华', a:['⛰️ Seceda刀锋山(缆车)','🌼 Alpe di Siusi休斯高原','💎 Lago di Carezza(顺路)','⛪ Val di Funes孤独教堂'], f:['🥟 Canederli饺子','🍎 Apple Strudel','🥓 Speck熏火腿','🍷 白葡萄酒'], tr:{m:'🚄+🚌',d:'米兰→Bolzano火车2h45→350路巴士1h'}},
+  {id:'innsbruck',  pos:[47.2682,11.3931],  d:'d4', l:'Day 5-6', e:'⛷️', t:'因斯布鲁克', g:'冬奥之城', a:['🏅 黄金屋顶','🚡 北链山缆车(30min到2300m)','💎 施华洛世奇水晶世界','🏊 阿亨湖(火车40min)'], f:['🥘 Tiroler Gröstl','🍎 Apple Strudel','🥩 Wiener Schnitzel','🍺 Zillertal Bier'], tr:{m:'🚄 火车',d:'Bolzano→Brenner→Innsbruck 1.5h'}},
+  {id:'salzburg',   pos:[47.8095,13.0550],  d:'d5', l:'Day 7', e:'🎵', t:'萨尔茨堡', g:'莫扎特故乡', a:['🏰 霍亨萨尔茨堡要塞(€13)','🎵 莫扎特故居+米拉贝尔花园','🏘️ 粮食胡同'], f:['🍫 Mozartkugel','🥩 Wiener Schnitzel','🍰 苹果卷'], tr:{m:'🚄 火车',d:'Innsbruck→Salzburg 2h'}},
+  {id:'stwolfgang', pos:[47.7395,13.4483],  d:'d5', l:'Day 8', e:'🖼️', t:'圣沃尔夫冈', g:'湖区过夜', a:['🚂 沙夫山蒸汽小火车','🚣 租小船或游泳','🌅 湖边日落'], f:['🐟 湖鲜','🍰 当地甜点'], tr:{m:'🚌 巴士',d:'萨尔茨堡→圣沃尔夫冈 1h'}},
+  {id:'munich',     pos:[48.1351,11.5820],  d:'d6', l:'Day 9', e:'🍺', t:'慕尼黑', g:'半日·啤酒', a:['🏛️ 玛丽恩广场','🕰️ 钟琴玩偶','🍺 皇家啤酒屋(1589年!)'], f:['🍺 猪肘+啤酒','🥨 德式面包'], tr:{m:'🚄 火车',d:'Salzburg→München 2h'}},
+  {id:'fuessen',    pos:[47.5693,10.6997],  d:'d6', l:'Day 9-10', e:'🦢', t:'菲森·新天鹅堡', g:'迪士尼城堡原型', a:['🏰 新天鹅堡(提前订票!)','🌉 玛丽安桥拍全景','🏘️ 高天鹅堡','🌈 Füssen老城'], f:['🥩 德国猪肘子','🍺 德国啤酒','🥨 面包'], tr:{m:'🚄 RE',d:'München→Füssen 2h(拜仁票)'}},
+  {id:'augsburg',   pos:[48.3705,10.8978],  d:'d6', l:'Day 10', e:'🏛️', t:'奥格斯堡', g:'浪漫之路', a:['🏘️ Fuggerei(€0.88/年)','🏛️ 市政厅金色大厅','🍺 啤酒花园'], f:['🍺 巴伐利亚啤酒'], tr:{m:'🚄 RE',d:'Füssen→Augsburg 2h(拜仁票)'}},
+  {id:'nordlingen', pos:[48.8512,10.4887],  d:'d6', l:'Day 11', e:'🌍', t:'诺德林根', g:'陨石坑小镇', a:['🌍 1500万年陨石坑','🗼 丹尼尔塔登顶'], f:[], tr:{m:'🚄 RE',d:'Augsburg→Nördlingen 1h(拜仁票)'}},
+  {id:'dinkelsbuehl',pos:[49.0702,10.3225], d:'d6', l:'Day 11', e:'🏘️', t:'丁克尔斯比尔', g:'安静古城', a:['🏘️ 完整城墙+木筋房','☕ 比罗滕堡安静'], f:['☕ 小镇咖啡'], tr:{m:'🚌 851路',d:'Nördlingen→Dinkelsbühl 40min'}},
+  {id:'rothenburg', pos:[49.3778,10.1788],  d:'d7', l:'Day 12', e:'👑', t:'罗滕堡', g:'浪漫之路精华', a:['📸 步云莱Plönlein','🗼 市政厅登顶220级','🏰 古城墙漫步(免费)','🎄 圣诞博物馆','🕯️ 夜巡人(€12)'], f:['🍪 Schneeballen雪球','🥩 德式晚餐'], tr:{m:'🚌',d:'Dinkelsbühl→Rothenburg 1h'}},
+  {id:'nuernberg',  pos:[49.4521,11.0767],  d:'d7', l:'Day 13-15', e:'🏛️', t:'纽伦堡', g:'终站', a:['🏰 皇帝堡','⛲ 美泉','🏘️ 圣洛伦茨教堂','🍪 姜饼Lebkuchen'], f:['🥩 纽伦堡小烤肠','🍺 弗兰肯啤酒'], tr:{m:'🚄 RE',d:'Rothenburg→Nürnberg 1h直达'}},
+  {id:'bamberg',    pos:[49.8988,10.9028],  d:'d7', l:'Day 14', e:'🏘️', t:'班贝格', g:'弗兰肯的威尼斯', a:['🌊 UNESCO水城','🏛️ 水中市政厅','⛪ 班贝格大教堂','🏘️ 小威尼斯'], f:['🍺 Schlenkerla烟熏啤酒(1405年!)'], tr:{m:'🚄 RE',d:'Nürnberg→Bamberg 30min(通票)'}},
+];
+
+  const ROUTES = [
+    {p:[POI[0].pos,POI[1].pos], c:'#3498db', l:'🚄 1h', t:'米兰→科莫湖 €5-10'},
+    {p:[POI[1].pos,POI[2].pos], c:'#27ae60', l:'🚄+🚌 5h', t:'科莫→Bolzano→Ortisei'},
+    {p:[POI[2].pos,POI[3].pos], c:'#9b59b6', l:'🚄 1.5h', t:'Bolzano→Brenner→Innsbruck'},
+    {p:[POI[3].pos,POI[4].pos], c:'#9b59b6', l:'🚄 2h', t:'Innsbruck→萨尔茨堡'},
+    {p:[POI[4].pos,POI[5].pos], c:'#e67e22', l:'🚌 1h', t:'萨尔茨堡→圣沃尔夫冈'},
+    {p:[POI[5].pos,POI[6].pos], c:'#e67e22', l:'🚄 2h', t:'Salzburg→München'},
+    {p:[POI[6].pos,POI[7].pos], c:'#1abc9c', l:'🚄 2h', t:'München→Füssen(拜仁票)'},
+    {p:[POI[7].pos,POI[8].pos], c:'#1abc9c', l:'🚄 2h', t:'Füssen→Augsburg(拜仁票)'},
+    {p:[POI[8].pos,POI[9].pos], c:'#1abc9c', l:'🚄 1h', t:'Augsburg→Nördlingen'},
+    {p:[POI[9].pos,POI[10].pos],c:'#1abc9c', l:'🚌 40min', t:'Nördlingen→Dinkelsbühl'},
+    {p:[POI[10].pos,POI[11].pos],c:'#1abc9c', l:'🚌 1h', t:'Dinkelsbühl→Rothenburg'},
+    {p:[POI[11].pos,POI[12].pos],c:'#7f8c8d', l:'🚄 1h', t:'Rothenburg→Nürnberg直达'},
+    {p:[POI[12].pos,POI[13].pos],c:'#7f8c8d', l:'🚄 30min', t:'Nürnberg→Bamberg'},
+    {p:[POI[13].pos,POI[12].pos],c:'#7f8c8d', w:2, dash:'6,8', l:'🚄 30min', t:'Bamberg→Nürnberg返回'},
+  ];
+
+  ROUTES.forEach(function(r){
+    L.polyline(r.p,{color:r.c||'#888',weight:r.w||3.5,opacity:0.6,dashArray:r.dash||null}).addTo(map);
+    if(r.l){
+      var m=[(r.p[0][0]+r.p[1][0])/2,(r.p[0][1]+r.p[1][1])/2];
+      L.marker(m,{icon:L.divIcon({className:'info-label',html:r.l,iconSize:[60,20],iconAnchor:[30,10]})}).addTo(map).bindTooltip(r.t,{direction:'bottom'});
+    }
+  });
+
+  POI.forEach(function(d){
+    var c=DAYS[d.d]||'#888';
+    var m=L.circleMarker(d.pos,{radius:8,fillColor:c,color:'#fff',weight:2.5,fillOpacity:0.9}).addTo(map);
+    m.bindTooltip(d.e+' '+d.t+' · '+d.l,{direction:'top',offset:[0,-8]});
+    var h='<div class="popup-box"><h3>'+d.e+' '+d.t+'</h3><span class="day-tag" style="background:'+c+'">'+d.l+'</span> <span style="color:#888;font-size:11px;">'+d.g+'</span>';
+    if(d.a.length){h+='<div class="section"><div class="section-title">🎯 必玩</div><ul>';d.a.forEach(function(x){h+='<li>'+x+'</li>'});h+='</ul></div>';}
+    if(d.f.length){h+='<div class="section"><div class="section-title">🍽️ 美食</div><ul>';d.f.forEach(function(x){h+='<li>'+x+'</li>'});h+='</ul></div>';}
+    if(d.tr) h+='<div class="transport"><b>🚌 交通：</b>'+d.tr.m+' · '+d.tr.d+'</div>';
+    h+='</div>';
+    m.bindPopup(h,{maxWidth:290});
+  });
+
+  [[45.0,9.8,'🇮🇹 意大利'],[47.5,13.5,'🇦🇹 奥地利'],[49.0,11.0,'🇩🇪 德国'],[46.3,11.6,'🏔️ 多洛米蒂']].forEach(function(l){
+    L.marker([l[0],l[1]],{icon:L.divIcon({className:'info-label',html:l[2],iconSize:[80,22],iconAnchor:[40,11]})}).addTo(map);
+  });
+
+  L.control({position:'bottomright'}).onAdd=function(){
+    var e=L.DomUtil.create('div','legend-box');
+    e.innerHTML='<h4>🗺️ 图例</h4><div><span class="dot" style="background:#e74c3c"></span> Day 1 米兰</div><div><span class="dot" style="background:#3498db"></span> Day 2 科莫湖</div><div><span class="dot" style="background:#27ae60"></span> Day 3-4 多洛米蒂</div><div><span class="dot" style="background:#9b59b6"></span> Day 5-7 奥地利</div><div><span class="dot" style="background:#e67e22"></span> Day 8-9 湖区→慕尼黑</div><div><span class="dot" style="background:#1abc9c"></span> Day 9-12 浪漫之路</div><div><span class="dot" style="background:#7f8c8d"></span> Day 13-15 纽伦堡+班贝格</div><hr style="margin:4px 0;border-color:#eee;"><div style="font-size:11px;color:#888;">点击标记看详情 · 滚轮缩放</div>';
+    return e;
+  }.addTo(map);
+
+  L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+
+} // end if(typeof L)
+</script>
+</body>
+</html>
