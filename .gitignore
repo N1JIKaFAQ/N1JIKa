@@ -1,0 +1,24 @@
+# 签证资料（敏感文件）
+签证资料/
+
+# 下载的文件
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.webm
+
+# 日志
+*.log
+
+# 解释信（个人信息）
+解释信*.docx
+
+# B站下载缓存
+playinfo.json
+ds_update.log
+
+# Python 临时文件
+*.py
+__pycache__/
