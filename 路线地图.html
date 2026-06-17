@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>欧洲旅行 · 路线+行程（原版16日 / 精简版·柏林）</title>
+<title>欧洲15日旅行 · 7月16日→30日 · 米兰→柏林</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -11,7 +11,7 @@
 body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden; height: 100vh; }
 #map { height: 100vh; width: 100%; }
 
-/* Toggle buttons */
+/* === Toggle === */
 .toggle-bar {
   position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000;
   background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
@@ -19,7 +19,7 @@ body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden
   display: flex; border: 1px solid rgba(0,0,0,0.08); overflow: hidden;
 }
 .toggle-btn {
-  padding: 10px 24px; border: none; background: transparent; cursor: pointer;
+  padding: 10px 22px; border: none; background: transparent; cursor: pointer;
   font-size: 14px; font-weight: 600; color: #888; transition: all 0.25s;
   font-family: inherit; white-space: nowrap;
 }
@@ -27,18 +27,20 @@ body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden
 .toggle-btn:first-child { border-radius: 30px 0 0 30px; }
 .toggle-btn:last-child { border-radius: 0 30px 30px 0; }
 
-/* Content panel with static HTML */
-#content-panel {
+/* === Content panels (shared) === */
+#content-panel, #ticket-panel {
   position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 500;
   background: #f8f9fa; overflow-y: auto; display: none;
   padding: 70px 10px 30px;
 }
-#content-panel.open { display: block; }
+#content-panel.open, #ticket-panel.open { display: block; }
 #content-inner {
   max-width: 780px; margin: 0 auto; background: #fff; border-radius: 12px;
   padding: 28px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   font-size: 14px; line-height: 1.8; color: #444;
 }
+
+/* === Typography === */
 .itinerary-title {
   font-size: 24px; font-weight: 700; color: #222;
   padding-bottom: 8px; border-bottom: 3px solid #e74c3c; margin-bottom: 12px;
@@ -51,12 +53,12 @@ body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden
   padding-bottom: 4px; border-bottom: 2px solid #e74c3c;
 }
 .day-title {
-  font-size: 16px; font-weight: 600; color: #c0392b; margin: 20px 0 4px;
+  font-size: 16px; font-weight: 700; color: #c0392b; margin: 20px 0 4px;
 }
 .day-meta { font-size: 13px; color: #888; margin-bottom: 4px; }
 .day-table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 13px; }
 .day-table td { padding: 4px 8px; border: 1px solid #eee; vertical-align: top; }
-.day-table td:first-child { white-space: nowrap; color: #888; width: 80px; }
+.day-table td:first-child { white-space: nowrap; color: #888; width: 70px; }
 .day-table td:nth-child(2) { font-weight: 600; width: 80px; }
 .tip { background: #fdf6f5; border-left: 3px solid #e74c3c; padding: 6px 14px; border-radius: 0 6px 6px 0; margin: 4px 0 12px; font-size: 13px; color: #555; }
 .divider { border: none; border-top: 2px solid #eee; margin: 16px 0; }
@@ -68,19 +70,60 @@ body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden
 .tag.teal { background: #1abc9c; }
 .tag.gray { background: #7f8c8d; }
 
-/* Legend */
+/* === Transport tags === */
+.transport-tag {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; margin: 0 4px;
+}
+.transport-tag.train { background: #d6eaf8; color: #1a5276; }
+.transport-tag.bus { background: #fdebd0; color: #935116; }
+.transport-tag.flight { background: #fadbd8; color: #922b21; }
+.transport-tag.mixed { background: #e8daef; color: #6c3483; }
+
+/* === Route overview === */
+.route-overview { font-size: 14px; line-height: 2.4; margin: 8px 0; }
+.route-overview .stop { font-weight: 600; color: #222; }
+.route-overview .arrow { color: #aaa; margin: 0 4px; }
+
+/* === Ticket panel === */
+#ticket-panel { background: #f0f4f8; }
+#ticket-inner {
+  max-width: 780px; margin: 0 auto; background: #fff; border-radius: 12px;
+  padding: 28px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  font-size: 14px; line-height: 1.8; color: #444;
+}
+.ticket-table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 13px; }
+.ticket-table th {
+  background: #c0392b; color: #fff; padding: 8px 10px; text-align: left;
+  font-weight: 600; font-size: 13px;
+}
+.ticket-table td { padding: 7px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+.ticket-table tr:nth-child(even) { background: #fafafa; }
+.ticket-table tr:hover { background: #fdf6f5; }
+.ticket-table .urgent { color: #e74c3c; font-weight: 700; }
+.ticket-table .soon { color: #e67e22; font-weight: 600; }
+.ticket-table .normal { color: #27ae60; }
+.ticket-table a { color: #3498db; text-decoration: none; }
+.ticket-table a:hover { text-decoration: underline; }
+
+/* === Legend === */
 .legend-box {
   background: white; padding: 10px 14px; border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.12); font-size: 12px; line-height: 1.7;
 }
 .legend-box h4 { margin: 0 0 4px; font-size: 13px; }
 .legend-box .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.legend-box .trans-sample { display: inline-block; vertical-align: middle; margin-right: 4px; font-size: 14px; }
 
-/* Map */
+/* === Map === */
 .info-label {
-  background: rgba(255,255,255,0.92); padding: 3px 10px; border-radius: 5px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.12); font-size: 12px; font-weight: 600;
-  border: 1px solid rgba(0,0,0,0.06); white-space: nowrap;
+  background: rgba(255,255,255,0.92); padding: 4px 12px; border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 13px; font-weight: 700;
+  border: 1.5px solid rgba(0,0,0,0.1); white-space: nowrap;
+}
+.info-label.transport {
+  font-size: 14px; padding: 6px 14px; border-width: 2px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.18);
 }
 .popup-box { font-size: 13px; line-height: 1.6; max-width: 280px; }
 .popup-box h3 { margin: 0 0 2px; font-size: 15px; }
@@ -89,22 +132,20 @@ body { font-family: -apple-system,"Microsoft YaHei",sans-serif; overflow: hidden
 .popup-box .section-title { font-weight: 600; color: #555; font-size: 11px; }
 .popup-box ul { margin: 0; padding-left: 16px; }
 .popup-box .transport { background: #f8f9fa; border-radius: 5px; padding: 4px 8px; margin-top: 5px; font-size: 11px; border-left: 3px solid #888; }
-.leaflet-popup-content { margin: 8px 12px; }
 
 @media (max-width:600px) {
   .toggle-btn { padding: 8px 14px; font-size: 12px; }
-  #content-inner { padding: 16px; font-size: 13px; }
+  #content-inner, #ticket-inner { padding: 16px; font-size: 13px; }
 }
 </style>
-<!-- 切换函数独立定义，确保内容视图不受 Leaflet 加载影响 -->
 <script>
 function switchView(v) {
   document.getElementById('map').style.display = v === 'map' ? 'block' : 'none';
   document.getElementById('content-panel').classList.toggle('open', v === 'content');
-  document.getElementById('content-panel-v2').classList.toggle('open', v === 'content-v2');
+  document.getElementById('ticket-panel').classList.toggle('open', v === 'tickets');
   document.getElementById('btn-map').classList.toggle('active', v === 'map');
   document.getElementById('btn-content').classList.toggle('active', v === 'content');
-  document.getElementById('btn-content-v2').classList.toggle('active', v === 'content-v2');
+  document.getElementById('btn-tickets').classList.toggle('active', v === 'tickets');
   if (v === 'map' && typeof map !== 'undefined') try { map.invalidateSize(); } catch(e) {}
 }
 </script>
@@ -113,85 +154,63 @@ function switchView(v) {
 
 <div class="toggle-bar">
   <button class="toggle-btn active" id="btn-map" onclick="switchView('map')">🗺️ 地图</button>
-  <button class="toggle-btn" id="btn-content" onclick="switchView('content')">📋 原版16日</button>
-  <button class="toggle-btn" id="btn-content-v2" onclick="switchView('content-v2')">📋 精简版·柏林</button>
+  <button class="toggle-btn" id="btn-content" onclick="switchView('content')">📋 完整行程</button>
+  <button class="toggle-btn" id="btn-tickets" onclick="switchView('tickets')">🎫 购票清单</button>
 </div>
 
 <div id="map"></div>
 
+<!-- ============ 完整行程 ============ -->
 <div id="content-panel">
 <div id="content-inner">
 
-<div class="itinerary-title">🇪🇺 欧洲16日旅行计划 · 7月15日→30日</div>
-<div class="itinerary-sub">👥 你和好朋友（两人） · 💰 预算 ¥20,000（一人一万） · 🛫 不含机票 · 7月15→30日 ☀️</div>
-<div class="itinerary-sub">🗺️ 米兰 → 科莫湖 → 多洛米蒂 → 奥地利 → 德国</div>
+<div class="itinerary-title">🇪🇺 欧洲15日旅行计划 · 7月16日→30日</div>
+<div class="itinerary-sub">👥 你和好朋友（两人） · 🗓️ 7月16日出发→17日抵达→30日回国 · 🗺️ 米兰→多洛米蒂→奥地利→新天鹅堡→罗滕堡→**柏林**</div>
 
 <hr class="divider">
 
 <div class="section-title">🗺️ 路线总览</div>
-
-<div style="font-size:13px;line-height:2;margin:8px 0;">
-<span class="tag">Day 1</span> 🛬 米兰落地（下午到）🛫<br>
-<span class="tag">Day 2</span> 🏛️ 米兰全日·大教堂+最后的晚餐<br>
-<span class="tag blue">Day 3</span> 🌊 科莫湖·住一晚看日落 🏨<br>
-<span class="tag green">Day 4</span> 🏔️ 科莫→多洛米蒂·抵达Ortisei<br>
-<span class="tag green">Day 5</span> ⛰️ 刀锋山 Seceda + 休斯高原 🌼<br>
-<span class="tag green">Day 6</span> 📸 富内斯山谷+Carezza湖→🇦🇹 因斯布鲁克<br>
-<span class="tag purple">Day 7</span> 🚠 因斯布鲁克·北链山+施华洛世奇<br>
-<span class="tag purple">Day 8</span> 🏞️ Innsbruck→Hallstatt·天空步道 🚠<br>
-<span class="tag purple">Day 9</span> 🥨 Hallstatt晨光→🇩🇪 **慕尼黑过夜**🍺<br>
-<span class="tag orange">Day 10</span> 🦢 慕尼黑→Schwangau·新天鹅堡<br>
-<span class="tag teal">Day 11</span> 🏛️ 奥格斯堡·Fuggerei<br>
-<span class="tag teal">Day 12</span> 🏘️ 诺德林根陨石坑+丁克尔斯比尔→住罗滕堡<br>
-<span class="tag teal">Day 13</span> 👑 **罗滕堡全天**·守夜人巡游 🕯️<br>
-<span class="tag teal">Day 14</span> 🏛️ 罗滕堡→纽伦堡·皇帝堡<br>
-<span class="tag gray">Day 15</span> 🏛️ 纽伦堡→🚄法兰克福→🛫飞米兰·马彭萨过夜<br>
-<span class="tag gray">Day 16</span> 🛫 米兰马彭萨→转机回国 🎉
+<div class="route-overview">
+<span class="tag">Day 1</span> 🛬 米兰抵达+探索 <span class="transport-tag mixed">🚄+🚌 机场大巴</span><br>
+<span class="tag green">Day 2</span> 🏔️ 米兰→多洛米蒂·Ortisei <span class="transport-tag train">🚄 2h45→Bolzano</span><span class="transport-tag bus">🚌 1h→Ortisei</span><br>
+<span class="tag green">Day 3</span> ⛰️ 刀锋山Seceda+休斯高原 <span class="transport-tag mixed">🚠 缆车</span><br>
+<span class="tag green">Day 4</span> 📸 富内斯山谷→🇦🇹 因斯布鲁克 <span class="transport-tag bus">🚌 40min</span><span class="transport-tag train">🚄 1.5h</span><br>
+<span class="tag purple">Day 5</span> 🚠 因斯布鲁克全天 <span class="transport-tag mixed">🚠 北链山+🚌 水晶世界</span><br>
+<span class="tag purple">Day 6</span> 🏞️ Innsbruck→Hallstatt <span class="transport-tag train">🚄 2h</span><span class="transport-tag bus">🚌 1.5h</span><br>
+<span class="tag purple">Day 7</span> 🥨 Hallstatt晨光→🇩🇪 慕尼黑 <span class="transport-tag train">🚄 3.5h</span><br>
+<span class="tag orange">Day 8</span> 🦢 慕尼黑→Schwangau·新天鹅堡 <span class="transport-tag train">🚄 2h</span><br>
+<span class="tag orange">Day 9</span> 🏘️ Schwangau→**罗滕堡** <span class="transport-tag train">🚄 3.5h</span><br>
+<span class="tag teal">Day 10</span> 🚄 罗滕堡晨光→**柏林** <span class="transport-tag train">🚄 4-5h</span><br>
+<span class="tag teal">Day 11</span> 🏛️ **柏林全天** <span class="transport-tag mixed">🚇 地铁</span><br>
+<span class="tag teal">Day 12</span> 🏛️ **柏林全天**·波茨坦 <span class="transport-tag train">🚄 40min→Potsdam</span><br>
+<span class="tag gray">Day 13</span> 🛫 柏林→**米兰** <span class="transport-tag flight">🛫 1.5h</span><br>
+<span class="tag gray">Day 14</span> 🛫 米兰回国 🎉
 </div>
 
 <hr class="divider">
 
 <div class="section-title">🇮🇹 意大利篇</div>
 
-<div class="day-title">Day 1 · 7月15日（三）· 米兰抵达 🛬</div>
-<div class="day-meta">🏨 米兰市区 ｜ 🚇 机场大巴+步行</div>
+<div class="day-title">Day 1 · 7月17日（五）· 米兰抵达+全日探索 🛬🏛️</div>
+<div class="day-meta">🏨 米兰市区 ｜ 🚇 机场大巴+步行+地铁</div>
 <table class="day-table">
-<tr><td>🛬 下午</td><td>抵达米兰</td><td>机场大巴/地铁到市区 → 🏨 入住 → 换衣服休息</td></tr>
-<tr><td>🌆 傍晚</td><td>第一顿意大利</td><td>酒店附近随便逛逛 → 🍝 第一顿意面+🍦 Gelato → 早睡倒时差</td></tr>
-</table>
-<div class="tip">🛬 飞了十多个小时，别安排太多，倒时差最重要</div>
-
-<div class="day-title">Day 2 · 7月16日（四）· 米兰全日探索 🏛️</div>
-<div class="day-meta">🏨 米兰市区（连住） ｜ 🚇 步行+地铁</div>
-<table class="day-table">
-<tr><td>🥐 上午</td><td>大教堂区</td><td>Luini炸帕尼诺 → 埃马努埃莱二世拱廊 → 米兰大教堂登顶(楼梯€15)</td></tr>
+<tr><td>🛬 上午</td><td>抵达米兰</td><td>当地时间早上到MXP → 机场大巴到市区 → 🏨 放行李</td></tr>
+<tr><td>🥐 中午</td><td>大教堂区</td><td>Luini炸帕尼诺 → 埃马努埃莱二世拱廊 → 米兰大教堂登顶(楼梯€15)</td></tr>
 <tr><td>🎨 下午</td><td>艺术+城堡</td><td>最后的晚餐真迹(提前2月抢票) → 斯福尔扎城堡 → 森皮奥内公园</td></tr>
-<tr><td>🍕 晚上</td><td>吃顿好的</td><td>Pizzeria Spontini → Gelato 🍦</td></tr>
+<tr><td>🍝 晚上</td><td>吃顿好的</td><td>Pizzeria Spontini → Gelato 🍦 → 早睡（时差撑一天了）</td></tr>
 </table>
-<div class="tip">⚠️ 最后的晚餐 cenacolovinciano.org 提前2个月抢票！大教堂登顶楼梯€15值</div>
+<div class="tip">🛬 早上到米兰直接开逛——时差撑着别睡，熬到晚上倒时差！⚠️ 最后的晚餐 cenacolovinciano.org 提前2个月抢票</div>
 
-<div class="day-title">Day 3 · 7月17日（五）· 科莫湖住一晚 🌊</div>
-<div class="day-meta">🏨 Bellagio或Varenna住一晚 ｜ 🚄 米兰→科莫 1h</div>
-<div style="font-size:13px;color:#666;margin:2px 0 6px;">Milano 🚄1h→ Varenna 🚢15min→ Bellagio 🏨</div>
+<div class="day-title">Day 2 · 7月18日（六）· 米兰→多洛米蒂 🏔️</div>
+<div class="day-meta">🏨 Ortisei ｜ 🚄+🚌 米兰→Bolzano→Ortisei ≈ 4h</div>
 <table class="day-table">
-<tr><td>☀️ 上午</td><td>米兰→湖上</td><td>Milano→Varenna(1h) → 逛彩色房子+湖边café</td></tr>
-<tr><td>🚢 中午</td><td>跳岛Bellagio</td><td>Varenna→Bellagio(15min) → 午饭</td></tr>
-<tr><td>🌤️ 下午</td><td>慢游+入住</td><td>Bellagio办入住 → 环湖散步 → 跳进湖里游泳🏊</td></tr>
-<tr><td>🌅 傍晚</td><td>真正的科莫湖</td><td>再坐船去Varenna看夕阳 → 游客散去，湖面金光✨</td></tr>
-<tr><td>🌙 晚上</td><td>湖畔晚餐</td><td>Bellagio湖边餐厅 → 散步回住宿</td></tr>
-</table>
-<div class="tip">🌅 科莫湖住一晚是正确选择——白天全是旅行团，傍晚才是它的样子</div>
-
-<div class="day-title">Day 4 · 7月18日（六）· 科莫→多洛米蒂 🏔️</div>
-<div class="day-meta">🏨 Ortisei ｜ 🚄🚌 科莫→米兰→Bolzano→Ortisei ≈ 5h</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>告别科莫</td><td>Bellagio→Varenna→Milano(1.5h)</td></tr>
-<tr><td>🚄 中午</td><td>奔赴山里</td><td>Milano→Bolzano(2h45) → 午饭+逛南蒂罗尔小城</td></tr>
-<tr><td>🚌 下午</td><td>进山！</td><td>Bolzano→Ortisei(350路1h) → 入住🏨</td></tr>
+<tr><td>☀️ 上午</td><td>告别米兰</td><td>🏨 退房 → 🚄 Milano→Bolzano(2h45, 意铁早鸟€25-35)</td></tr>
+<tr><td>🚄 中午</td><td>奔赴山里</td><td>Bolzano逛南蒂罗尔小城+午饭 → 🚌 350路→Ortisei(1h) → 入住🏨</td></tr>
 <tr><td>🌙 晚上</td><td>阿尔卑斯初夜</td><td>Canederli(南蒂罗尔饺子) + Apple Strudel 🍎</td></tr>
 </table>
+<div class="tip">💰 米兰→Bolzano 意铁/Italo早鸟票提前1-2个月买便宜一半 · 350路每小时一班，对好时间</div>
 
-<div class="day-title">Day 5 · 7月19日（日）· 刀锋山+休斯高原 ⛰️🌼</div>
+<div class="day-title">Day 3 · 7月19日（日）· 刀锋山+休斯高原 ⛰️🌼</div>
 <div class="day-meta">🏨 Ortisei（连住） ｜ 🚠 缆车+徒步</div>
 <table class="day-table">
 <tr><td>☀️ 上午</td><td>刀锋山 Seceda</td><td>🚠上刀锋山 → 山顶10min到最佳机位 → 和好朋友拍合影📸</td></tr>
@@ -201,12 +220,11 @@ function switchView(v) {
 </table>
 <div class="tip">⚠️ 缆车下午4-5点停运。山顶比山下低10°C，带外套</div>
 
-<div class="day-title">Day 6 · 7月20日（一）· 富内斯山谷→🇦🇹 因斯布鲁克</div>
+<div class="day-title">Day 4 · 7月20日（一）· 富内斯山谷→🇦🇹 因斯布鲁克</div>
 <div class="day-meta">🏨 Innsbruck ｜ 🚌🚄 巴士+火车</div>
 <table class="day-table">
 <tr><td>☀️ 上午</td><td>富内斯山谷</td><td>Ortisei→Val di Funes(40min) → 圣约翰教堂孤独教堂 → Santa Maddalena</td></tr>
-<tr><td>💎 中午</td><td>Carezza湖</td><td>Lago di Carezza 翡翠湖(30min)</td></tr>
-<tr><td>🚄 下午</td><td>北上Innsbruck</td><td>Bolzano→Innsbruck(1.5h, ~2-3pm到) → 入住</td></tr>
+<tr><td>💎 中午</td><td>Carezza湖</td><td>Lago di Carezza 翡翠湖(30min) → 🚄 Bolzano→Innsbruck(1.5h)</td></tr>
 <tr><td>🏛️ 傍晚</td><td>开逛老城</td><td>黄金屋顶 → 玛丽亚·特蕾西娅大街 → 🍺 第一顿奥地利晚餐</td></tr>
 </table>
 
@@ -214,7 +232,7 @@ function switchView(v) {
 
 <div class="section-title">🇦🇹 奥地利篇</div>
 
-<div class="day-title">Day 7 · 7月21日（二）· 因斯布鲁克全天 🚠💎</div>
+<div class="day-title">Day 5 · 7月21日（二）· 因斯布鲁克全天 🚠💎</div>
 <div class="day-meta">🏨 Innsbruck（连住） ｜ 🚶🚌 步行+公交</div>
 <table class="day-table">
 <tr><td>☀️ 上午</td><td>北链山缆车</td><td>从市中心上阿尔卑斯山顶！30min到2300m → 俯瞰全城+河谷</td></tr>
@@ -222,8 +240,8 @@ function switchView(v) {
 <tr><td>🌙 晚上</td><td>奥地利晚餐</td><td>换个馆子，超市买点零食明天路上吃</td></tr>
 </table>
 
-<div class="day-title">Day 8 · 7月22日（三）· 因斯布鲁克 → 哈尔施塔特 🏞️🚠</div>
-<div class="day-meta">🏨 Booking Hallstatt — Echerntalweg 3, 4830 Hallstatt, Austria ｜ 🚄🚌 Innsbruck→Hallstatt ≈ 3.5h</div>
+<div class="day-title">Day 6 · 7月22日（三）· 因斯布鲁克→哈尔施塔特 🏞️🚠</div>
+<div class="day-meta">🏨 Booking Hallstatt — Echerntalweg 3, 4830 Hallstatt ｜ 🚄+🚌 Innsbruck→Hallstatt ≈ 3.5h</div>
 <table class="day-table">
 <tr><td>☀️ 上午</td><td>告别因斯布鲁克</td><td>🚄 Innsbruck→Attnang-Puchheim(2h) → 🚌 Hallstatt(1.5h)</td></tr>
 <tr><td>🏞️ 午后</td><td>Hallstatt！</td><td>世界文化遗产小镇漫步 → 📸 经典明信片机位（教堂+湖+雪山）</td></tr>
@@ -231,7 +249,7 @@ function switchView(v) {
 <tr><td>🌙 晚上</td><td>湖畔晚餐</td><td>🍽️ 湖边餐厅吃鱼（Hallstatt特产湖鱼🐟）→ 小镇夜景散步</td></tr>
 </table>
 
-<div class="day-title">Day 9 · 7月23日（四）· 哈尔施塔特晨光 → 慕尼黑 🍺🇩🇪</div>
+<div class="day-title">Day 7 · 7月23日（四）· 哈尔施塔特晨光→慕尼黑 🍺🇩🇪</div>
 <div class="day-meta">🏨 Airbnb Munich — Menzinger Straße 36, Munich 80638 ｜ 🚄 Hallstatt→München ≈ 3.5h</div>
 <table class="day-table">
 <tr><td>🌅 清晨</td><td>Hallstatt晨景</td><td>趁旅行团没到，最后拍空镜📸 → 🥐 早餐 → 最后看一次湖面</td></tr>
@@ -243,412 +261,358 @@ function switchView(v) {
 
 <hr class="divider">
 
-<div class="section-title">🇩🇪 德国篇</div>
+<div class="section-title">🇩🇪 德国篇：新天鹅堡→罗滕堡→柏林</div>
 
-<div class="day-title">Day 10 · 7月24日（五）· 慕尼黑 → Schwangau·新天鹅堡 🦢</div>
-<div class="day-meta">🏨 Booking Schwangau — Schwangauer Strasse 7, 87645 Hohenschwangau ｜ 🚄 München→Schwangau ≈ 2h</div>
-<table class="day-table">
-<tr><td>🥨 上午</td><td>慕尼黑收尾</td><td>🏨 退房 → 谷物市场Viktualienmarkt白肠早餐🥨</td></tr>
-<tr><td>🚄 中午</td><td>前往Schwangau</td><td>🚄 München→Schwangau/Hohenschwangau(RE 2h) → 🏨 入住</td></tr>
-<tr><td>🦢 下午</td><td>新天鹅堡！</td><td>🚶 Schwangau→新天鹅堡(步行上山) → 玛丽安桥拍全景🏰 → 城堡参观</td></tr>
-<tr><td>🌙 晚上</td><td>Füssen老城</td><td>🏘️ 逛逛菲森彩色老城 → 🍽️ 阿尔卑斯山脚晚餐</td></tr>
-</table>
-<div class="tip">⚠️ 新天鹅堡门票提前2-4周订 neuschwanstein.de · 🏨 已订好：Schwangauer Str. 7, Hohenschwangau</div>
-
-<div class="day-title">Day 11 · 7月25日（六）· 浪漫之路第一站 · 奥格斯堡 🏛️</div>
-<div class="day-meta">🏨 奥格斯堡 ｜ 🚄 Schwangau/Füssen→Augsburg ≈ 2h（拜仁票可用）</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>菲森收尾</td><td>逛逛菲森老城 → 🚄 出发去Augsburg(2h)</td></tr>
-<tr><td>🏛️ 下午</td><td>奥格斯堡老城</td><td>🏘️ Fuggerei富格社区（€0.88/年的福利房😱）→ 市政厅金色大厅</td></tr>
-<tr><td>🌙 晚上</td><td>啤酒花园 🍺</td><td>找个啤酒花园吃晚饭</td></tr>
-</table>
-<div class="tip">🏘️ Fuggerei住了500年，租金至今€0.88/年</div>
-
-<div class="day-title">Day 12 · 7月26日（日）· 陨石坑小镇 + 中世纪城墙 🏘️</div>
-<div class="day-meta">🏨 奥格斯堡 ｜ 🚄 Füssen→Augsburg ≈ 2h（拜仁票）</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>菲森收尾</td><td>逛逛菲森老城 → 🚄 出发去Augsburg(2h)</td></tr>
-<tr><td>🏛️ 下午</td><td>奥格斯堡老城</td><td>Fuggerei富格社区(€0.88/年福利房😱) → 市政厅金色大厅</td></tr>
-<tr><td>🌙 晚上</td><td>啤酒花园🍺</td><td>找个啤酒花园吃晚饭</td></tr>
-</table>
-<div class="tip">🏘️ Fuggerei住了500年，租金至今€0.88/年</div>
-
-<div class="day-title">Day 13 · 7月27日（一）· 👑 罗滕堡全天 · 浪漫之路王冠</div>
-<div class="day-meta">🏨 罗滕堡 Rothenburg（住城内！）｜ 🚄🚌</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>诺德林根</td><td>Augsburg→Nördlingen(RE 1h) → 爬丹尼尔塔俯瞰陨石坑小镇🌍</td></tr>
-<tr><td>🚌 下午</td><td>丁克尔斯比尔</td><td>851路→Dinkelsbühl(40min) → 完整城墙+彩色木筋房🏘️</td></tr>
-<tr><td>🚌 傍晚</td><td>前往罗滕堡</td><td>Dinkelsbühl→Rothenburg(30min) → 住城内 → 出门就是童话</td></tr>
-<tr><td>🌙 晚上</td><td>初探夜景</td><td>旅行团散去，空无一人的Plönlein 🌙</td></tr>
-</table>
-<div class="tip">🌍 Nördlingen建在陨石坑里，教堂都是圆顶</div>
-
-<div class="day-title">Day 14 · 7月28日（二）· 罗滕堡晨光 → 纽伦堡 🏛️</div>
-<div class="day-meta">🏨 纽伦堡 ｜ 🚄 Rothenburg→Nürnberg ≈ 1h</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>城墙漫步</td><td>早起走古城墙(免费🆓) → 📸 空无一人的Plönlein</td></tr>
-<tr><td>📸 下午</td><td>经典三件套</td><td>市政厅登顶220级 → Plönlein步云莱 → 圣雅各布教堂圣血祭坛</td></tr>
-<tr><td>🍪 傍晚</td><td>雪球+圣诞</td><td>Schneeballen雪球(300年) → 圣诞博物馆🎄</td></tr>
-<tr><td>🕯️ 晚上</td><td>夜巡人巡游</td><td>Night Watchman Tour(€12) 穿黑袍提烛火夜游——必参加！</td></tr>
-</table>
-<div class="tip">👑 罗滕堡值得住两晚。🕯️ 守夜人提前订 nightwatchman-rothenburg.de</div>
-
-<div class="day-title">Day 15 · 7月29日（三）· 纽伦堡→法兰克福→飞米兰 🛫</div>
-<div class="day-meta">🏨 Milan Malpensa Airport — Via Ronchi, 42, Somma Lombardo 21019 ｜ 🚄🛫 Nürnberg→Frankfurt→✈️Milan MXP</div>
-<table class="day-table">
-<tr><td>🥨 上午</td><td>纽伦堡收尾</td><td>再逛逛老城或买纽伦堡姜饼Lebkuchen当伴手礼🍪 → 🏨 退房</td></tr>
-<tr><td>🚄 中午</td><td>ICE到法兰克福</td><td>🚄 Nürnberg Hbf→Frankfurt Flughafen Fernbf(ICE 2.5h直达) → 🛫 机场值机</td></tr>
-<tr><td>🛫 傍晚</td><td>飞回米兰！</td><td>🛫 Frankfurt→Milan MXP(1.5h) → 🚌 shuttle到机场酒店 🏨</td></tr>
-<tr><td>🌙 晚上</td><td>马彭萨过夜</td><td>好好休息 → 明天转机回国 ✈️</td></tr>
-</table>
-<div class="tip">🛫 法兰克福→米兰有廉航(Ryanair/EasyJet)提前订。🚄 ICE 2.5h直达机场 bahn.de · 🏨 已订好：Via Ronchi, 42, Somma Lombardo</div>
-
-<div class="day-title">Day 16 · 7月30日（四）· 米兰马彭萨 → 转机回国 🎉</div>
-<div class="day-meta">🏨 —— ｜ 🛫 Milan Malpensa(MXP) → 转机回国</div>
-<table class="day-table">
-<tr><td>🛫 白天</td><td>转机回国</td><td>🚌 酒店shuttle→MXP机场 → 🛫 转机/直飞回国 → 结束16天欧洲之旅 🎊</td></tr>
-</table>
-<div class="tip">🛍️ 米兰马尔彭萨机场(MXP)免税店很好逛，最后买点伴手礼。🎉 和好朋友的16天旅行圆满结束！</div>
-
-<hr class="divider">
-
-<div class="section-title">💰 预算总览</div>
-<table class="day-table">
-<tr><td>项目</td><td>意大利段(6天)</td><td>奥+德段(10天)</td><td>总计</td></tr>
-<tr><td>🏠 住宿</td><td>¥3,200~4,800</td><td>¥5,600~8,400</td><td>¥8,800~13,200</td></tr>
-<tr><td>🚄 城际交通</td><td>¥1,300~2,200</td><td>¥2,000~3,000</td><td>¥3,300~5,200</td></tr>
-<tr><td>🍝 餐饮</td><td>¥1,800~3,000</td><td>¥3,000~5,000</td><td>¥4,800~8,000</td></tr>
-<tr><td>🎫 门票/缆车</td><td>¥900~1,600</td><td>¥800~1,500</td><td>¥1,700~3,100</td></tr>
-<tr><td>🚃 市内交通</td><td>¥300~500</td><td>¥600~1,000</td><td>¥900~1,500</td></tr>
-<tr><td><b>小计</b></td><td><b>¥7,500~12,100</b></td><td><b>¥12,000~18,900</b></td><td><b>¥19,500~31,000</b></td></tr>
-</table>
-<div class="tip">💡 一人一万总共两万，意大利段花7000-11000，还剩一万左右给奥德，够用</div>
-
-<hr class="divider">
-
-<div class="section-title">📋 16天速览</div>
-<div style="font-size:13px;line-height:2;">
-Day 1 &nbsp; 🛬 米兰落地（下午到）·倒时差<br>
-Day 2 &nbsp; 🏛️ 米兰全日·大教堂+最后的晚餐<br>
-Day 3 &nbsp; 🌊 科莫湖·Varenna Bellagio 🏨 住Bellagio<br>
-Day 4 &nbsp; 🏔️ 科莫→Ortisei·多洛米蒂进山<br>
-Day 5 &nbsp; ⛰️ Seceda刀锋山+Alpe di Siusi休斯高原<br>
-Day 6 &nbsp; 📸 富内斯山谷+Carezza湖 → 🇦🇹 Innsbruck<br>
-Day 7 &nbsp; 🚠 北链山缆车+施华洛世奇水晶世界<br>
-Day 8 &nbsp; 🏞️ Innsbruck→**Hallstatt**·天空步道 🚠<br>
-Day 9 &nbsp; 🥨 Hallstatt晨光→🇩🇪 **慕尼黑过夜**🍺<br>
-Day 10 🦢 慕尼黑→**Schwangau**·新天鹅堡<br>
-Day 11 🏛️ **奥格斯堡**·Fuggerei<br>
-Day 12 🏘️ 诺德林根陨石坑+丁克尔斯比尔→住**罗滕堡**<br>
-Day 13 👑 **罗滕堡全天**·守夜人巡游🕯️<br>
-Day 14 🏛️ 罗滕堡→**纽伦堡**·皇帝堡<br>
-Day 15 🏛️ 纽伦堡→🚄法兰克福→🛫飞米兰·马彭萨过夜<br>
-Day 16 🛫 米兰马彭萨→转机回国 🎉
-</div>
-
-</div>
-</div>
-
-<div id="content-panel-v2">
-<div id="content-inner">
-
-<div class="itinerary-title">🇪🇺 欧洲15日旅行计划 · 7月15日→29日（精简版·柏林）</div>
-<div class="itinerary-sub">👥 你和好朋友（两人） · 🗓️ 7月15→29日 · 🗺️ 米兰→科莫→多洛米蒂→奥地利→新天鹅堡→罗滕堡→**柏林**</div>
-
-<hr class="divider">
-
-<div class="section-title">🗺️ 路线总览</div>
-<div style="font-size:13px;line-height:2;margin:8px 0;">
-<span class="tag">Day 1</span> 🛬 米兰落地（下午到）🛫<br>
-<span class="tag">Day 2</span> 🏛️ 米兰全日·大教堂+最后的晚餐<br>
-<span class="tag blue">Day 3</span> 🌊 科莫湖·住一晚看日落 🏨<br>
-<span class="tag green">Day 4</span> 🏔️ 科莫→多洛米蒂·抵达Ortisei<br>
-<span class="tag green">Day 5</span> ⛰️ 刀锋山 Seceda + 休斯高原 🌼<br>
-<span class="tag green">Day 6</span> 📸 富内斯山谷+Carezza湖→🇦🇹 因斯布鲁克<br>
-<span class="tag purple">Day 7</span> 🚠 因斯布鲁克·北链山+施华洛世奇<br>
-<span class="tag purple">Day 8</span> 🏞️ Innsbruck→Hallstatt·天空步道 🚠<br>
-<span class="tag purple">Day 9</span> 🥨 Hallstatt晨光→🇩🇪 **慕尼黑过夜**🍺<br>
-<span class="tag orange">Day 10</span> 🦢 慕尼黑→Schwangau·新天鹅堡<br>
-<span class="tag orange">Day 11</span> 🏘️ Schwangau→**罗滕堡**·守夜人🕯️<br>
-<span class="tag teal">Day 12</span> 🚄 罗滕堡晨光→**柏林**🏛️<br>
-<span class="tag teal">Day 13</span> 🏛️ **柏林全天**·墙+博物馆岛<br>
-<span class="tag gray">Day 14</span> 🛫 柏林→**米兰**🏨<br>
-<span class="tag gray">Day 15</span> 🛫 米兰回国 🎉
-</div>
-
-<hr class="divider">
-
-<div class="section-title">🇮🇹 意大利篇（与原版相同）</div>
-
-<div class="day-title">Day 1 · 7月15日（三）· 米兰抵达 🛬</div>
-<div class="day-meta">🏨 米兰市区 ｜ 🚇 机场大巴+步行</div>
-<table class="day-table">
-<tr><td>🛬 下午</td><td>抵达米兰</td><td>机场大巴/地铁到市区 → 🏨 入住 → 换衣服休息</td></tr>
-<tr><td>🌆 傍晚</td><td>第一顿意大利</td><td>酒店附近随便逛逛 → 🍝 第一顿意面+🍦 Gelato → 早睡倒时差</td></tr>
-</table>
-<div class="tip">🛬 飞了十多个小时，别安排太多，倒时差最重要</div>
-
-<div class="day-title">Day 2 · 7月16日（四）· 米兰全日探索 🏛️</div>
-<div class="day-meta">🏨 米兰市区（连住） ｜ 🚇 步行+地铁</div>
-<table class="day-table">
-<tr><td>🥐 上午</td><td>大教堂区</td><td>Luini炸帕尼诺 → 埃马努埃莱二世拱廊 → 米兰大教堂登顶(楼梯€15)</td></tr>
-<tr><td>🎨 下午</td><td>艺术+城堡</td><td>最后的晚餐真迹(提前2月抢票) → 斯福尔扎城堡 → 森皮奥内公园</td></tr>
-<tr><td>🍕 晚上</td><td>吃顿好的</td><td>Pizzeria Spontini → Gelato 🍦</td></tr>
-</table>
-<div class="tip">⚠️ 最后的晚餐 cenacolovinciano.org 提前2个月抢票！大教堂登顶楼梯€15值</div>
-
-<div class="day-title">Day 3 · 7月17日（五）· 科莫湖住一晚 🌊</div>
-<div class="day-meta">🏨 Bellagio或Varenna住一晚 ｜ 🚄 米兰→科莫 1h</div>
-<div style="font-size:13px;color:#666;margin:2px 0 6px;">Milano 🚄1h→ Varenna 🚢15min→ Bellagio 🏨</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>米兰→湖上</td><td>Milano→Varenna(1h) → 逛彩色房子+湖边café</td></tr>
-<tr><td>🚢 中午</td><td>跳岛Bellagio</td><td>Varenna→Bellagio(15min) → 午饭</td></tr>
-<tr><td>🌤️ 下午</td><td>慢游+入住</td><td>Bellagio办入住 → 环湖散步 → 跳进湖里游泳🏊</td></tr>
-<tr><td>🌅 傍晚</td><td>真正的科莫湖</td><td>再坐船去Varenna看夕阳 → 游客散去，湖面金光✨</td></tr>
-<tr><td>🌙 晚上</td><td>湖畔晚餐</td><td>Bellagio湖边餐厅 → 散步回住宿</td></tr>
-</table>
-<div class="tip">🌅 科莫湖住一晚是正确选择——白天全是旅行团，傍晚才是它的样子</div>
-
-<div class="day-title">Day 4 · 7月18日（六）· 科莫→多洛米蒂 🏔️</div>
-<div class="day-meta">🏨 Ortisei ｜ 🚄🚌 科莫→米兰→Bolzano→Ortisei ≈ 5h</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>告别科莫</td><td>Bellagio→Varenna→Milano(1.5h)</td></tr>
-<tr><td>🚄 中午</td><td>奔赴山里</td><td>Milano→Bolzano(2h45) → 午饭+逛南蒂罗尔小城</td></tr>
-<tr><td>🚌 下午</td><td>进山！</td><td>Bolzano→Ortisei(350路1h) → 入住🏨</td></tr>
-<tr><td>🌙 晚上</td><td>阿尔卑斯初夜</td><td>Canederli(南蒂罗尔饺子) + Apple Strudel 🍎</td></tr>
-</table>
-
-<div class="day-title">Day 5 · 7月19日（日）· 刀锋山+休斯高原 ⛰️🌼</div>
-<div class="day-meta">🏨 Ortisei（连住） ｜ 🚠 缆车+徒步</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>刀锋山 Seceda</td><td>🚠上刀锋山 → 山顶10min到最佳机位 → 和好朋友拍合影📸</td></tr>
-<tr><td>🌤️ 下午</td><td>休斯高原</td><td>🚠转场Alpe di Siusi → 野花+牛铃 → 轻松徒步2-3h</td></tr>
-<tr><td>🌅 傍晚</td><td>小镇时光</td><td>逛Ortisei木雕店 → 找个高处看日照金山🌇</td></tr>
-<tr><td>🌙 晚上</td><td>吃当地味</td><td>Speck熏火腿 + 南蒂罗尔白葡萄酒 🍷</td></tr>
-</table>
-<div class="tip">⚠️ 缆车下午4-5点停运。山顶比山下低10°C，带外套</div>
-
-<div class="day-title">Day 6 · 7月20日（一）· 富内斯山谷→🇦🇹 因斯布鲁克</div>
-<div class="day-meta">🏨 Innsbruck ｜ 🚌🚄 巴士+火车</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>富内斯山谷</td><td>Ortisei→Val di Funes(40min) → 圣约翰教堂孤独教堂 → Santa Maddalena</td></tr>
-<tr><td>💎 中午</td><td>Carezza湖</td><td>Lago di Carezza 翡翠湖(30min)</td></tr>
-<tr><td>🚄 下午</td><td>北上Innsbruck</td><td>Bolzano→Innsbruck(1.5h, ~2-3pm到) → 入住</td></tr>
-<tr><td>🏛️ 傍晚</td><td>开逛老城</td><td>黄金屋顶 → 玛丽亚·特蕾西娅大街 → 🍺 第一顿奥地利晚餐</td></tr>
-</table>
-
-<hr class="divider">
-
-<div class="section-title">🇦🇹 奥地利篇（与原版相同）</div>
-
-<div class="day-title">Day 7 · 7月21日（二）· 因斯布鲁克全天 🚠💎</div>
-<div class="day-meta">🏨 Innsbruck（连住） ｜ 🚶🚌 步行+公交</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>北链山缆车</td><td>从市中心上阿尔卑斯山顶！30min到2300m → 俯瞰全城+河谷</td></tr>
-<tr><td>💎 下午</td><td>施华洛世奇</td><td>Innsbruck→瓦滕斯(20min) → 水晶巨人头(会喷水！)</td></tr>
-<tr><td>🌙 晚上</td><td>奥地利晚餐</td><td>换个馆子，超市买点零食明天路上吃</td></tr>
-</table>
-
-<div class="day-title">Day 8 · 7月22日（三）· 因斯布鲁克 → 哈尔施塔特 🏞️🚠</div>
-<div class="day-meta">🏨 Booking Hallstatt — Echerntalweg 3, 4830 Hallstatt, Austria ｜ 🚄🚌 Innsbruck→Hallstatt ≈ 3.5h</div>
-<table class="day-table">
-<tr><td>☀️ 上午</td><td>告别因斯布鲁克</td><td>🚄 Innsbruck→Attnang-Puchheim(2h) → 🚌 Hallstatt(1.5h)</td></tr>
-<tr><td>🏞️ 午后</td><td>Hallstatt！</td><td>世界文化遗产小镇漫步 → 📸 经典明信片机位（教堂+湖+雪山）</td></tr>
-<tr><td>⛰️ 下午</td><td>Skywalk观景台</td><td>🚠 哈尔施塔特天空步道 Welterbeblick（俯瞰整个小镇+湖，超震撼）</td></tr>
-<tr><td>🌙 晚上</td><td>湖畔晚餐</td><td>🍽️ 湖边餐厅吃鱼（Hallstatt特产湖鱼🐟）→ 小镇夜景散步</td></tr>
-</table>
-
-<div class="day-title">Day 9 · 7月23日（四）· 哈尔施塔特晨光 → 慕尼黑 🍺🇩🇪</div>
-<div class="day-meta">🏨 Airbnb Munich — Menzinger Straße 36, Munich 80638 ｜ 🚄 Hallstatt→München ≈ 3.5h</div>
-<table class="day-table">
-<tr><td>🌅 清晨</td><td>Hallstatt晨景</td><td>趁旅行团没到，最后拍空镜📸 → 🥐 早餐 → 最后看一次湖面</td></tr>
-<tr><td>🚄 上午</td><td>进军德国！</td><td>🚌 Hallstatt→Attnang-Puchheim→🚄 München(≈3.5h, ~12pm到)</td></tr>
-<tr><td>🥨 午后</td><td>慕尼黑开逛！</td><td>🏨 Airbnb入住 → 🚶 玛丽恩广场 → 新市政厅钟琴玩偶🕰️ → 皇家啤酒屋猪肘+啤酒</td></tr>
-<tr><td>🌙 晚上</td><td>深度半日</td><td>🏛️ 慕尼黑王宫Residenz → 🌆 英国花园散步（河里有人冲浪🏄）</td></tr>
-</table>
-<div class="tip">🍺 皇家啤酒屋1589年开业，和好朋友干一杯！🦢 明天去新天鹅堡 · 🏨 已订好：Menzinger Str. 36, Munich</div>
-
-<hr class="divider">
-
-<div class="section-title">🇩🇪 德国篇·精简版（新天鹅堡→罗滕堡→柏林）</div>
-
-<div class="day-title">Day 10 · 7月24日（五）· 慕尼黑 → Schwangau·新天鹅堡 🦢</div>
+<div class="day-title">Day 8 · 7月24日（五）· 慕尼黑→Schwangau·新天鹅堡 🦢</div>
 <div class="day-meta">🏨 Booking Schwangau — Schwangauer Str. 7, 87645 Hohenschwangau ｜ 🚄 München→Schwangau ≈ 2h</div>
 <table class="day-table">
 <tr><td>🥨 上午</td><td>慕尼黑收尾</td><td>🏨 退房 → 谷物市场Viktualienmarkt白肠早餐🥨</td></tr>
-<tr><td>🚄 中午</td><td>前往Schwangau</td><td>🚄 München→Schwangau/Hohenschwangau(RE 2h) → 🏨 入住</td></tr>
-<tr><td>🦢 下午</td><td>新天鹅堡！</td><td>🚶 Schwangau→新天鹅堡(步行上山) → 玛丽安桥拍全景🏰 → 城堡参观</td></tr>
+<tr><td>🚄 中午</td><td>前往Schwangau</td><td>🚄 München→Schwangau(RE 2h, 拜仁票) → 🏨 入住</td></tr>
+<tr><td>🦢 下午</td><td>新天鹅堡！</td><td>🚶 步行上山 → 玛丽安桥拍全景🏰 → 城堡参观</td></tr>
 <tr><td>🌙 晚上</td><td>Füssen老城</td><td>🏘️ 逛逛菲森彩色老城 → 🍽️ 阿尔卑斯山脚晚餐</td></tr>
 </table>
 <div class="tip">⚠️ 新天鹅堡门票提前2-4周订 neuschwanstein.de · 🏨 已订好：Schwangauer Str. 7, Hohenschwangau</div>
 
-<div class="day-title">Day 11 · 7月25日（六）· Schwangau → 罗滕堡 🏘️🕯️</div>
-<div class="day-meta">🏨 罗滕堡 Rothenburg（住城内）｜ 🚄🚌 Schwangau→罗滕堡 ≈ 3.5h</div>
+<div class="day-title">Day 9 · 7月25日（六）· Schwangau→罗滕堡 🏘️🕯️</div>
+<div class="day-meta">🏨 罗滕堡 Rothenburg（住城内）｜ 🚄 Schwangau→罗滕堡 ≈ 3.5h</div>
 <table class="day-table">
 <tr><td>☀️ 上午</td><td>Füssen收尾</td><td>逛逛老城 → 早起去Alpsee拍天鹅堡倒影🦢</td></tr>
-<tr><td>🚄 中午</td><td>前往罗滕堡</td><td>🚄 Füssen→Augsburg(1.5h)换乘→罗滕堡(RE 2h)</td></tr>
+<tr><td>🚄 中午</td><td>前往罗滕堡</td><td>🚄 Füssen→Augsburg(1.5h)换乘→罗滕堡(RE 2h, 拜仁票)</td></tr>
 <tr><td>👑 下午</td><td>罗滕堡开逛！</td><td>Plönlein步云莱明信片机位 → 市政厅登顶220级俯瞰红房顶</td></tr>
 <tr><td>🍪 傍晚</td><td>雪球+圣诞</td><td>Schneeballen雪球(300年) → 圣诞博物馆🎄</td></tr>
 <tr><td>🕯️ 晚上</td><td>夜巡人巡游</td><td>Night Watchman Tour(€12) — 必参加！</td></tr>
 </table>
-<div class="tip">👑 罗滕堡是整个浪漫之路的精华，傍晚+夜景+清晨是精髓！🕯️ 守夜人提前订</div>
+<div class="tip">👑 罗滕堡是整个浪漫之路的精华！🕯️ 守夜人提前订 nightwatchman-rothenburg.de</div>
 
-<div class="day-title">Day 12 · 7月26日（日）· 罗滕堡晨光 → 柏林 🚄🏛️</div>
+<div class="day-title">Day 10 · 7月26日（日）· 罗滕堡晨光→柏林 🚄🏛️</div>
 <div class="day-meta">🏨 柏林 ｜ 🚄 Rothenburg→Würzburg→Berlin ≈ 4-5h</div>
 <table class="day-table">
 <tr><td>🌅 清晨</td><td>罗滕堡收尾</td><td>早起走古城墙(免费) → 📸 空无一人的Plönlein → 🥐 早餐</td></tr>
-<tr><td>🚄 上午</td><td>出发去柏林！</td><td>🚄 Rothenburg→Würzburg(RE 1h)换ICE→Berlin Hbf(3h) → 🏨 入住</td></tr>
+<tr><td>🚄 上午</td><td>出发去柏林！</td><td>🚄 Rothenburg→Würzburg(RE 1h, 拜仁票)换ICE→Berlin(3h, 早鸟€17.90起)</td></tr>
 <tr><td>🏛️ 傍晚</td><td>柏林初探</td><td>勃兰登堡门 → 国会大厦穹顶(提前约免费) → 看日落🌆</td></tr>
 <tr><td>🍺 晚上</td><td>柏林第一顿</td><td>Currywurst咖喱肠 + 柏林啤酒🍺</td></tr>
 </table>
 <div class="tip">🚄 Würzburg→Berlin ICE早鸟€17.90起 · 🏛️ 国会大厦穹顶提前约 bundestag.de 免费！</div>
 
-<div class="day-title">Day 13 · 7月27日（一）· 柏林全天 🏛️🎨</div>
+<div class="day-title">Day 11 · 7月27日（一）· 柏林全天 🏛️🎨</div>
 <div class="day-meta">🏨 柏林（连住） ｜ 🚇 地铁+步行</div>
 <table class="day-table">
 <tr><td>☀️ 上午</td><td>柏林墙+博物馆岛</td><td>东边画廊柏林墙🎨 → 博物馆岛·佩加蒙博物馆必去!</td></tr>
 <tr><td>🥪 中午</td><td>Curry 36</td><td>最著名Currywurst店 → Checkpoint Charlie</td></tr>
-<tr><td>🏛️ 下午</td><td>冷战历史</td><td>Checkpoint Charlie → 恐怖地形图 → 亚历山大广场</td></tr>
+<tr><td>🏛️ 下午</td><td>冷战历史</td><td>恐怖地形图 → 波茨坦广场 → 亚历山大广场</td></tr>
 <tr><td>🌙 晚上</td><td>哈克市场</td><td>Hackescher Markt晚餐 → 德国猪肘🥩 + 白啤🍺</td></tr>
 </table>
 <div class="tip">🏛️ 佩加蒙博物馆世界级！提前订票 · 🚇 柏林天票€8.80/人</div>
 
-<div class="day-title">Day 14 · 7月28日（二）· 柏林收尾 → 🛫 米兰 🏛️🛫</div>
+<div class="day-title">Day 12 · 7月28日（二）· 柏林全天·波茨坦无忧宫 🏛️🌳</div>
+<div class="day-meta">🏨 柏林（连住） ｜ 🚄 波茨坦40min</div>
+<table class="day-table">
+<tr><td>☀️ 上午</td><td>波茨坦无忧宫</td><td>🚄 Berlin→Potsdam(RE 40min) → 无忧宫Schloss Sanssouci(普鲁士凡尔赛!)</td></tr>
+<tr><td>🏛️ 下午</td><td>新宫+荷兰区</td><td>Neues Palais → 荷兰 quarter逛逛 → 🚄 回柏林</td></tr>
+<tr><td>🥩 晚上</td><td>最后一顿德国</td><td>找个好馆子吃德国猪肘+啤酒 → 和德国告别 🍺</td></tr>
+</table>
+<div class="tip">🏛️ 无忧宫提前订票！可选：不去波茨坦也可逛柏林大教堂登顶+新博物馆</div>
+
+<div class="day-title">Day 13 · 7月29日（三）· 柏林收尾→🛫米兰 🏛️🛫</div>
 <div class="day-meta">🏨 米兰 ｜ 🛫 Berlin→Milan 1.5h（廉航€20-50/人）</div>
 <table class="day-table">
-<tr><td>🥨 上午</td><td>柏林收尾</td><td>哈克市场买伴手礼🍪 → 🏨 退房 → 🚇 去机场</td></tr>
+<tr><td>🥨 上午</td><td>柏林收尾</td><td>哈克市场买伴手礼🍪→ 🏨 退房 → 🚇 去机场</td></tr>
 <tr><td>🛫 下午</td><td>飞回米兰！</td><td>🛫 Berlin→Milan(1.5h) → 🚌 到市区 → 🏨 入住</td></tr>
 <tr><td>🍝 晚上</td><td>最后一顿意大利</td><td>再吃一次正宗意面+🍦 Gelato → 米兰大教堂夜景🌆</td></tr>
 </table>
-<div class="tip">🛫 Ryanair/EasyJet提前订 €20-50/人</div>
+<div class="tip">🛫 Ryanair/EasyJet提前订 €20-50/人 🏨 米兰最后一晚推荐大教堂或中央车站附近</div>
 
-<div class="day-title">Day 15 · 7月29日（三）· 米兰 → 转机回国 🎉</div>
+<div class="day-title">Day 14 · 7月30日（四）· 米兰→转机回国 🎉</div>
 <div class="day-meta">🏨 —— ｜ 🛫 Milan MXP → 转机回国</div>
 <table class="day-table">
-<tr><td>🛫 白天</td><td>转机回国</td><td>🚌 机场大巴→MXP机场 → 🛫 转机/直飞回国 → 15天圆满结束 🎊</td></tr>
+<tr><td>🛫 白天</td><td>转机回国</td><td>🚌 机场大巴→MXP机场 → 🛫 回家 → 14天欧洲之旅圆满结束 🎊</td></tr>
 </table>
-<div class="tip">🛍️ 米兰马尔彭萨机场(MXP)免税店很好逛。🎉 和好朋友的15天旅行圆满结束！</div>
+<div class="tip">🛍️ 米兰马尔彭萨机场(MXP)免税店很好逛。🎉 和好朋友的旅行圆满结束！</div>
 
 <hr class="divider">
 
-<div class="section-title">💰 预算总览（精简版）</div>
+<div class="section-title">💰 预算总览</div>
 <table class="day-table">
-<tr><td>项目</td><td>意大利段(6天)</td><td>奥+德段(9天)</td><td>总计</td></tr>
-<tr><td>🏠 住宿</td><td>¥3,200~4,800</td><td>¥5,000~7,500</td><td>¥8,200~12,300</td></tr>
-<tr><td>🚄 城际交通</td><td>¥1,300~2,200</td><td>¥2,500~3,500</td><td>¥3,800~5,700</td></tr>
-<tr><td>🍝 餐饮</td><td>¥1,800~3,000</td><td>¥2,700~4,500</td><td>¥4,500~7,500</td></tr>
-<tr><td>🎫 门票/缆车</td><td>¥900~1,600</td><td>¥1,200~2,000</td><td>¥2,100~3,600</td></tr>
-<tr><td>🚃 市内交通</td><td>¥300~500</td><td>¥500~900</td><td>¥800~1,400</td></tr>
-<tr><td><b>小计</b></td><td><b>¥7,500~12,100</b></td><td><b>¥11,900~18,400</b></td><td><b>¥19,400~30,500</b></td></tr>
+<tr><td>项目</td><td>意大利段(5天)</td><td>奥+德段(9天)</td><td>总计</td></tr>
+<tr><td>🏠 住宿</td><td>¥2,800~4,200</td><td>¥5,000~7,500</td><td>¥7,800~11,700</td></tr>
+<tr><td>🚄 城际交通</td><td>¥1,000~1,800</td><td>¥2,800~4,000</td><td>¥3,800~5,800</td></tr>
+<tr><td>🍝 餐饮</td><td>¥1,500~2,500</td><td>¥2,700~4,500</td><td>¥4,200~7,000</td></tr>
+<tr><td>🎫 门票/缆车</td><td>¥800~1,400</td><td>¥1,400~2,200</td><td>¥2,200~3,600</td></tr>
+<tr><td>🚃 市内交通</td><td>¥200~400</td><td>¥600~1,000</td><td>¥800~1,400</td></tr>
+<tr><td><b>小计</b></td><td><b>¥6,300~10,300</b></td><td><b>¥12,500~19,200</b></td><td><b>¥18,800~29,500</b></td></tr>
 </table>
-<div class="tip">💡 砍了奥格斯堡/纽伦堡，省的花费用在柏林上，总体和原计划基本持平</div>
+<div class="tip">💡 砍了科莫湖省一晚住宿+交通，意大利段预算降了约¥2k；柏林多一天开销≈¥500-800/两人</div>
 
 <hr class="divider">
 
-<div class="section-title">📋 15天速览</div>
+<div class="section-title">📋 14天速览</div>
 <div style="font-size:13px;line-height:2;">
-Day 1 &nbsp; 🛬 米兰落地（下午到）·倒时差<br>
-Day 2 &nbsp; 🏛️ 米兰全日·大教堂+最后的晚餐<br>
-Day 3 &nbsp; 🌊 科莫湖·Varenna Bellagio 🏨 住Bellagio<br>
-Day 4 &nbsp; 🏔️ 科莫→Ortisei·多洛米蒂进山<br>
-Day 5 &nbsp; ⛰️ Seceda刀锋山+Alpe di Siusi休斯高原<br>
-Day 6 &nbsp; 📸 富内斯山谷+Carezza湖 → 🇦🇹 Innsbruck<br>
-Day 7 &nbsp; 🚠 北链山缆车+施华洛世奇水晶世界<br>
-Day 8 &nbsp; 🏞️ Innsbruck→**Hallstatt**·天空步道 🚠<br>
-Day 9 &nbsp; 🥨 Hallstatt晨光→🇩🇪 **慕尼黑**🍺<br>
-Day 10 🦢 慕尼黑→**Schwangau**·新天鹅堡<br>
-Day 11 🏘️ Schwangau→**罗滕堡**·守夜人🕯️<br>
-Day 12 🚄 罗滕堡晨光→**柏林**🏛️<br>
-Day 13 🏛️ **柏林全天**·墙+博物馆岛<br>
-Day 14 🛫 柏林→**米兰**🏨<br>
-Day 15 🛫 米兰回国 🎉
+Day 1 &nbsp; 🛬 米兰抵达+全日探索（17号早上到）<br>
+Day 2 &nbsp; 🏔️ 米兰→Ortisei·多洛米蒂进山 <span class="transport-tag train" style="font-size:11px;">🚄 2h45</span><span class="transport-tag bus" style="font-size:11px;">🚌 1h</span><br>
+Day 3 &nbsp; ⛰️ Seceda刀锋山+Alpe di Siusi休斯高原<br>
+Day 4 &nbsp; 📸 富内斯山谷+Carezza湖→🇦🇹 Innsbruck <span class="transport-tag train" style="font-size:11px;">🚄 1.5h</span><br>
+Day 5 &nbsp; 🚠 北链山缆车+施华洛世奇水晶世界<br>
+Day 6 &nbsp; 🏞️ Innsbruck→**Hallstatt**·天空步道 <span class="transport-tag train" style="font-size:11px;">🚄+🚌 3.5h</span><br>
+Day 7 &nbsp; 🥨 Hallstatt晨光→🇩🇪 **慕尼黑** <span class="transport-tag train" style="font-size:11px;">🚄 3.5h</span><br>
+Day 8 &nbsp; 🦢 慕尼黑→**Schwangau**·新天鹅堡 <span class="transport-tag train" style="font-size:11px;">🚄 2h</span><br>
+Day 9 &nbsp; 🏘️ Schwangau→**罗滕堡**·守夜人 <span class="transport-tag train" style="font-size:11px;">🚄 3.5h</span><br>
+Day 10 🚄 罗滕堡晨光→**柏林** <span class="transport-tag train" style="font-size:11px;">🚄 4-5h</span><br>
+Day 11 🏛️ **柏林全天**·墙+博物馆岛<br>
+Day 12 🏛️ **柏林全天**·波茨坦无忧宫 <span class="transport-tag train" style="font-size:11px;">🚄 40min</span><br>
+Day 13 🛫 柏林→**米兰** <span class="transport-tag flight" style="font-size:11px;">🛫 1.5h</span><br>
+Day 14 🛫 米兰回国 🎉
 </div>
+
+</div>
+</div>
+
+<!-- ============ 购票清单 ============ -->
+<div id="ticket-panel">
+<div id="ticket-inner">
+
+<div class="itinerary-title">🎫 购票清单 · 提前预订汇总</div>
+<div class="itinerary-sub">按紧急程度排列 · 🔴 必须提前抢 · 🟡 建议提前订 · 🟢 可现场买</div>
+
+<hr class="divider">
+
+<div class="section-title">🏛️ 景点门票</div>
+<table class="ticket-table">
+<tr><th style="width:50px;">紧急</th><th>景点</th><th style="width:80px;">Day</th><th style="width:130px;">提前多久</th><th>官网</th><th style="width:70px;">价格</th></tr>
+<tr>
+  <td><span class="urgent">🔴 极抢手</span></td>
+  <td><b>最后的晚餐</b>·米兰</td>
+  <td>Day 1</td>
+  <td><b>提前2个月</b>（7月旺季极抢手）</td>
+  <td><a href="https://www.cenacolovinciano.org" target="_blank">cenacolovinciano.org</a></td>
+  <td>€15</td>
+</tr>
+<tr>
+  <td><span class="urgent">🔴 必须订</span></td>
+  <td><b>新天鹅堡</b>·Schwangau</td>
+  <td>Day 8</td>
+  <td><b>提前2-4周</b></td>
+  <td><a href="https://www.neuschwanstein.de" target="_blank">neuschwanstein.de</a></td>
+  <td>€20</td>
+</tr>
+<tr>
+  <td><span class="soon">🟡 建议订</span></td>
+  <td><b>米兰大教堂登顶</b></td>
+  <td>Day 1</td>
+  <td>提前1-2周</td>
+  <td><a href="https://www.duomomilano.it" target="_blank">duomomilano.it</a></td>
+  <td>€15(楼梯)</td>
+</tr>
+<tr>
+  <td><span class="soon">🟡 建议订</span></td>
+  <td><b>佩加蒙博物馆</b>·柏林</td>
+  <td>Day 11</td>
+  <td>提前1-2周</td>
+  <td><a href="https://www.smb.museum" target="_blank">smb.museum</a></td>
+  <td>€12</td>
+</tr>
+<tr>
+  <td><span class="soon">🟡 建议订</span></td>
+  <td><b>国会大厦穹顶</b>·柏林</td>
+  <td>Day 10</td>
+  <td>提前1-2周（免费但必须约）</td>
+  <td><a href="https://www.bundestag.de" target="_blank">bundestag.de</a></td>
+  <td>免费</td>
+</tr>
+<tr>
+  <td><span class="soon">🟡 建议订</span></td>
+  <td><b>无忧宫</b>·波茨坦</td>
+  <td>Day 12</td>
+  <td>提前1-2周</td>
+  <td><a href="https://www.spsg.de" target="_blank">spsg.de</a></td>
+  <td>€12</td>
+</tr>
+<tr>
+  <td><span class="soon">🟡 建议订</span></td>
+  <td><b>罗滕堡夜巡人</b></td>
+  <td>Day 9</td>
+  <td>提前1-2周（旺季容易满）</td>
+  <td><a href="https://www.nightwatchman-rothenburg.de" target="_blank">nightwatchman-rothenburg.de</a></td>
+  <td>€12</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 现场买</span></td>
+  <td><b>Seceda缆车</b>·多洛米蒂</td>
+  <td>Day 3</td>
+  <td>可现场买，也支持在线</td>
+  <td><a href="https://www.valgardena.it" target="_blank">valgardena.it</a></td>
+  <td>€35</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 现场买</span></td>
+  <td><b>北链山缆车</b>·因斯布鲁克</td>
+  <td>Day 5</td>
+  <td>可现场买</td>
+  <td><a href="https://www.nordkette.com" target="_blank">nordkette.com</a></td>
+  <td>€40</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 现场买</span></td>
+  <td><b>施华洛世奇水晶世界</b></td>
+  <td>Day 5</td>
+  <td>官网提前买省排队</td>
+  <td><a href="https://www.swarovski.com/kristallwelten" target="_blank">swarovski.com</a></td>
+  <td>€25</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 现场买</span></td>
+  <td><b>Hallstatt Skywalk</b></td>
+  <td>Day 6</td>
+  <td>现场买票</td>
+  <td><a href="https://www.hallstatt.salzberg.at" target="_blank">hallstatt.salzberg.at</a></td>
+  <td>€12</td>
+</tr>
+</table>
+
+<div class="section-title">🚄 交通票务</div>
+<table class="ticket-table">
+<tr><th style="width:50px;">紧急</th><th>项目</th><th>线路</th><th style="width:130px;">提前多久</th><th>官网/备注</th><th style="width:70px;">价格</th></tr>
+<tr>
+  <td><span class="soon">🟡 早鸟</span></td>
+  <td><b>意铁/Italo</b></td>
+  <td>米兰→Bolzano</td>
+  <td>提前1-2个月（早鸟便宜一半）</td>
+  <td><a href="https://www.trenitalia.com" target="_blank">trenitalia.com</a> / <a href="https://www.italotreno.it" target="_blank">italotreno.it</a></td>
+  <td>€25-50</td>
+</tr>
+<tr>
+  <td><span class="soon">🟡 早鸟</span></td>
+  <td><b>ICE Sparpreis</b></td>
+  <td>Würzburg→Berlin</td>
+  <td>提前1-2个月（€17.90起）</td>
+  <td><a href="https://www.bahn.de" target="_blank">bahn.de</a></td>
+  <td>€17.90起</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 当天买</span></td>
+  <td><b>拜仁票 Bayern Ticket</b></td>
+  <td>拜仁州区域火车+公交</td>
+  <td>当天买（DB App或车站）</td>
+  <td>覆盖慕尼黑→Schwangau→罗滕堡段</td>
+  <td>€31/两人/天</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 当天买</span></td>
+  <td><b>柏林→米兰廉航</b></td>
+  <td>Berlin→Milan MXP/BGY</td>
+  <td><b>提前1-2个月订更便宜</b></td>
+  <td>Ryanair / EasyJet</td>
+  <td>€20-50/人</td>
+</tr>
+<tr>
+  <td><span class="normal">🟢 当天买</span></td>
+  <td><b>柏林天票</b></td>
+  <td>柏林市内</td>
+  <td>当天买（地铁站售票机）</td>
+  <td>ABC圈含机场</td>
+  <td>€8.80/人</td>
+</tr>
+</table>
+
+<div class="tip" style="margin-top:16px;">📌 <b>购票策略：</b>最后的晚餐现在就去抢 → 新天鹅堡提前1个月订 → 火车票提前1-2个月看早鸟 → 廉航提前1个月订</div>
 
 </div>
 </div>
 
 <script>
 // ====================================================================
-//  MAP  (CDN 加载失败则跳过，不影响切换功能)
+//  MAP
 // ====================================================================
 var map = null;
 if (typeof L !== 'undefined') {
 
-map = L.map('map').setView([47.5, 11.8], 6.5);
+map = L.map('map').setView([48.0, 11.5], 6);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 18, attribution: '© OpenStreetMap'
 }).addTo(map);
 
-const DAYS = { d1:'#e74c3c', d2:'#3498db', d3:'#27ae60', d4:'#9b59b6', d5:'#e67e22', d6:'#1abc9c', d7:'#7f8c8d' };
+const COLORS = {
+  d1: '#e74c3c', d2: '#27ae60', d3: '#9b59b6', d4: '#e67e22', d5: '#1abc9c', d6: '#7f8c8d'
+};
+
+// Transport mode colors for routes
+const TRANS = {
+  train: { color: '#2980b9', weight: 4, opacity: 0.7, label: '🚄', dash: null },
+  bus: { color: '#e67e22', weight: 3.5, opacity: 0.6, label: '🚌', dash: null },
+  flight: { color: '#e74c3c', weight: 3, opacity: 0.6, label: '🛫', dash: '6,4' },
+  mixed: { color: '#8e44ad', weight: 3.5, opacity: 0.6, label: '🚄+🚌', dash: null }
+};
 
 const POI = [
-  {id:'milano',     pos:[45.4642,9.1900],   d:'d1', l:'Day 1-2', e:'🏛️', t:'米兰', g:'落地+全日探索', tm:'🕐 下午抵达·全日探索', a:['⛪ 米兰大教堂登顶(楼梯€15)','🏛️ 埃马努埃莱二世拱廊','🎨 最后的晚餐(提前2月约)','🏰 斯福尔扎城堡','🍝 第一顿意面倒时差'], f:['🥐 Luini 炸帕尼诺','🍕 Pizzeria Spontini','🍦 Gelato']},
-  {id:'como',       pos:[45.8090,9.0860],   d:'d2', l:'Day 3', e:'🌊', t:'科莫湖', g:'住一晚看日落', tm:'🕐 上午~傍晚', a:['🏘️ Bellagio珍珠小镇','🏡 Varenna最美日落','🚢 游船€8/程','🚡 科莫缆车€6'], f:['🥪 Bellagio湖边午餐','☕ Varenna湖畔咖啡'], tr:{m:'🚄 火车',d:'米兰→Como San Giovanni €5-10'}},
-  {id:'ortisei',    pos:[46.5756,11.6718],  d:'d3', l:'Day 4-5', e:'🏔️', t:'多洛米蒂·Ortisei', g:'阿尔卑斯精华', tm:'🕐 下午抵达+全日', a:['⛰️ Seceda刀锋山(缆车)','🌼 Alpe di Siusi休斯高原','💎 Lago di Carezza(顺路)','⛪ Val di Funes孤独教堂'], f:['🥟 Canederli饺子','🍎 Apple Strudel','🥓 Speck熏火腿','🍷 白葡萄酒'], tr:{m:'🚄+🚌',d:'米兰→Bolzano火车2h45→350路巴士1h'}},
-  {id:'innsbruck',  pos:[47.2682,11.3931],  d:'d4', l:'Day 6-7', e:'⛷️', t:'因斯布鲁克', g:'冬奥之城', tm:'🕐 傍晚抵达+全日', a:['🏅 黄金屋顶','🚡 北链山缆车(30min到2300m)','💎 施华洛世奇水晶世界','🏊 阿亨湖(火车40min)'], f:['🥘 Tiroler Gröstl','🍎 Apple Strudel','🥩 Wiener Schnitzel','🍺 Zillertal Bier'], tr:{m:'🚄 火车',d:'Bolzano→Brenner→Innsbruck 1.5h'}},
-  {id:'hallstatt',  pos:[47.5622,13.6493],  d:'d4', l:'Day 8', e:'🏞️', t:'哈尔施塔特', g:'世界最美小镇', tm:'🕐 午后抵达·全日探索', a:['📸 经典明信片机位（教堂+湖+雪山）','🚠 Hallstatt Skywalk观景台','🏘️ 小镇漫步','🐟 湖鱼晚餐'], f:[], tr:{m:'🚄+🚌',d:'Innsbruck→Attnang-Puchheim 2h→Hallstatt 1.5h'}},
-  {id:'munich',     pos:[48.1351,11.5820],  d:'d5', l:'Day 9', e:'🍺', t:'慕尼黑', g:'过夜·巴伐利亚首府', tm:'🕐 午后抵达·半日游', a:['🏛️ 玛丽恩广场+钟琴玩偶','🏰 慕尼黑王宫Residenz','🍺 皇家啤酒屋(1589年!)','🌳 英国花园(有人冲浪🏄)'], f:['🍺 猪肘+啤酒','🥨 白肠早餐'], tr:{m:'🚄 火车',d:'Hallstatt→Attnang-Puchheim→München 3.5h'}},
-  {id:'schwangau',  pos:[47.5582,10.7363],  d:'d6', l:'Day 10', e:'🦢', t:'Schwangau·新天鹅堡', g:'迪士尼城堡原型', tm:'🕐 下午抵达', a:['🏰 新天鹅堡(提前订票!)','🌉 玛丽安桥拍全景','🏘️ Füssen老城逛逛'], f:['🥩 德国猪肘子','🍺 德国啤酒','🥨 面包'], tr:{m:'🚄 RE',d:'München→Schwangau 2h(拜仁票)'}},
-  {id:'augsburg',   pos:[48.3705,10.8978],  d:'d6', l:'Day 11', e:'🏛️', t:'奥格斯堡', g:'浪漫之路起点', tm:'🕐 下午', a:['🏘️ Fuggerei(€0.88/年)','🏛️ 市政厅金色大厅','🍺 啤酒花园'], f:['🍺 巴伐利亚啤酒'], tr:{m:'🚄 RE',d:'Schwangau→Augsburg 2h(拜仁票)'}},
-  {id:'nordlingen', pos:[48.8512,10.4887],  d:'d6', l:'Day 12', e:'🌍', t:'诺德林根', g:'陨石坑小镇', tm:'🕐 上午', a:['🌍 1500万年陨石坑','🗼 丹尼尔塔登顶'], f:[], tr:{m:'🚄 RE',d:'Augsburg→Nördlingen 1h(拜仁票)'}},
-  {id:'dinkelsbuehl',pos:[49.0702,10.3225], d:'d6', l:'Day 12', e:'🏘️', t:'丁克尔斯比尔', g:'安静古城', tm:'🕐 下午', a:['🏘️ 完整城墙+木筋房','☕ 比罗滕堡安静'], f:['☕ 小镇咖啡'], tr:{m:'🚌 851路',d:'Nördlingen→Dinkelsbühl 40min'}},
-  {id:'rothenburg', pos:[49.3778,10.1788],  d:'d6', l:'Day 12-13', e:'👑', t:'罗滕堡', g:'浪漫之路精华住两晚', tm:'🕐 傍晚抵达+全日', a:['📸 步云莱Plönlein','🗼 市政厅登顶220级','🏰 古城墙漫步(免费)','🎄 圣诞博物馆','🕯️ 夜巡人(€12)'], f:['🍪 Schneeballen雪球','🥩 德式晚餐'], tr:{m:'🚌',d:'Dinkelsbühl→Rothenburg 30min'}},
-  {id:'nuernberg',  pos:[49.4521,11.0767],  d:'d6', l:'Day 14', e:'🏛️', t:'纽伦堡', g:'中世纪老城', tm:'🕐 上午抵达·全日游', a:['🏰 皇帝堡','⛲ 美泉','🏘️ 圣洛伦茨教堂','🍪 姜饼Lebkuchen'], f:['🥩 纽伦堡小烤肠','🍺 弗兰肯啤酒'], tr:{m:'🚄 RE',d:'Rothenburg→Nürnberg 1h直达'}},
-  {id:'frankfurt',  pos:[50.1109,8.6821],   d:'d7', l:'Day 15', e:'🛫', t:'法兰克福', g:'机场中转飞米兰', tm:'🕐 午后抵达·转机', a:['✈️ 法兰克福机场中转','🚄 ICE枢纽站'], f:[], tr:{m:'🚄 ICE',d:'Nürnberg→Frankfurt ICE 2.5h'}},
-  {id:'milano-mxp', pos:[45.6306,8.7231],   d:'d7', l:'Day 15-16', e:'🛬', t:'米兰·马彭萨', g:'机场过夜转机回国', tm:'🕐 晚间抵达+翌日飞', a:['🏨 机场酒店过夜','🛫 转机回国'], f:[], tr:{}},
-  {id:'berlin',     pos:[52.5200,13.4050],  d:'d7', l:'Day 12-14', e:'🏛️', t:'柏林', g:'德意志之都·精简版新增', tm:'🕐 傍晚抵达+全日', a:['🏛️ 勃兰登堡门','🏛️ 国会大厦穹顶(免费预约)','🎨 东边画廊柏林墙','🏛️ 博物馆岛·佩加蒙','🏛️ Checkpoint Charlie'], f:['🥩 Currywurst咖喱肠','🍺 柏林白啤','🥩 德国猪肘'], tr:{m:'🚄 ICE',d:'Rothenburg→Würzburg→Berlin Hbf 4-5h'}},
+  {id:'milano',     pos:[45.4642,9.1900],   d:'d1', l:'Day 1', e:'🏛️', t:'米兰', g:'抵达+全日探索', tm:'🕐 7/17早上到·全天', a:['⛪ 米兰大教堂登顶(楼梯€15)','🎨 最后的晚餐(提前2月约)','🏰 斯福尔扎城堡','🍝 第一顿意面倒时差'], f:['🥐 Luini 炸帕尼诺','🍕 Pizzeria Spontini','🍦 Gelato'], tr:{m:'🚄+🚌',d:'Milano→Bolzano→Ortisei'}},
+  {id:'ortisei',    pos:[46.5756,11.6718],  d:'d1', l:'Day 2-3', e:'🏔️', t:'多洛米蒂·Ortisei', g:'阿尔卑斯精华', tm:'🕐 7/18中午到·住两晚', a:['⛰️ Seceda刀锋山(缆车)','🌼 Alpe di Siusi休斯高原','💎 Lago di Carezza(顺路)','⛪ Val di Funes孤独教堂'], f:['🥟 Canederli饺子','🍎 Apple Strudel','🥓 Speck熏火腿','🍷 白葡萄酒'], tr:{m:'🚄+🚌',d:'Milano→Bolzano 2h45→350路1h'}},
+  {id:'innsbruck',  pos:[47.2682,11.3931],  d:'d3', l:'Day 4-5', e:'⛷️', t:'因斯布鲁克', g:'冬奥之城', tm:'🕐 7/20傍晚到·住两晚', a:['🏅 黄金屋顶','🚡 北链山缆车(30min到2300m)','💎 施华洛世奇水晶世界','🏊 阿亨湖(火车40min)'], f:['🥘 Tiroler Gröstl','🍎 Apple Strudel','🥩 Wiener Schnitzel','🍺 Zillertal Bier'], tr:{m:'🚄',d:'Bolzano→Innsbruck 1.5h'}},
+  {id:'hallstatt',  pos:[47.5622,13.6493],  d:'d3', l:'Day 6', e:'🏞️', t:'哈尔施塔特', g:'世界最美小镇', tm:'🕐 7/22午后到·住一晚', a:['📸 经典明信片机位（教堂+湖+雪山）','🚠 Hallstatt Skywalk观景台','🏘️ 小镇漫步','🐟 湖鱼晚餐'], f:[], tr:{m:'🚄+🚌',d:'Innsbruck→Attnang-Puchheim 2h→Hallstatt 1.5h'}},
+  {id:'munich',     pos:[48.1351,11.5820],  d:'d4', l:'Day 7', e:'🍺', t:'慕尼黑', g:'过夜·巴伐利亚首府', tm:'🕐 7/23午后到·半日游', a:['🏛️ 玛丽恩广场+钟琴玩偶','🏰 慕尼黑王宫Residenz','🍺 皇家啤酒屋(1589年!)','🌳 英国花园(有人冲浪🏄)'], f:['🍺 猪肘+啤酒','🥨 白肠早餐'], tr:{m:'🚄',d:'Hallstatt→München 3.5h'}},
+  {id:'schwangau',  pos:[47.5582,10.7363],  d:'d4', l:'Day 8', e:'🦢', t:'Schwangau·新天鹅堡', g:'迪士尼城堡原型', tm:'🕐 7/24下午到', a:['🏰 新天鹅堡(提前订票!)','🌉 玛丽安桥拍全景','🏘️ Füssen老城逛逛'], f:['🥩 德国猪肘子','🍺 德国啤酒','🥨 面包'], tr:{m:'🚄 RE',d:'München→Schwangau 2h(拜仁票)'}},
+  {id:'rothenburg', pos:[49.3778,10.1788],  d:'d5', l:'Day 9-10', e:'👑', t:'罗滕堡', g:'浪漫之路精华', tm:'🕐 7/25下午到·住一晚', a:['📸 步云莱Plönlein','🗼 市政厅登顶220级','🏰 古城墙漫步(免费)','🎄 圣诞博物馆','🕯️ 夜巡人(€12)'], f:['🍪 Schneeballen雪球','🥩 德式晚餐'], tr:{m:'🚄',d:'Schwangau→Augsburg→Rothenburg 3.5h'}},
+  {id:'berlin',     pos:[52.5200,13.4050],  d:'d6', l:'Day 10-12', e:'🏛️', t:'柏林', g:'德意志之都·住三晚', tm:'🕐 7/26傍晚到·全日×2+波茨坦', a:['🏛️ 勃兰登堡门','🏛️ 国会大厦穹顶(免费预约)','🎨 东边画廊柏林墙','🏛️ 博物馆岛·佩加蒙','🏛️ 波茨坦无忧宫(7/28)'], f:['🥩 Currywurst咖喱肠','🍺 柏林白啤','🥩 德国猪肘'], tr:{m:'🚄 ICE',d:'Rothenburg→Würzburg→Berlin 4-5h'}},
 ];
 
-  const ROUTES = [
-    {p:[POI[0].pos,POI[1].pos], c:'#3498db', l:'🚄 1h', t:'米兰→科莫湖 €5-10'},
-    {p:[POI[1].pos,POI[2].pos], c:'#27ae60', l:'🚄+🚌 5h', t:'科莫→Bolzano→Ortisei'},
-    {p:[POI[2].pos,POI[3].pos], c:'#9b59b6', l:'🚄 1.5h', t:'Bolzano→Brenner→Innsbruck'},
-    {p:[POI[3].pos,POI[4].pos], c:'#9b59b6', l:'🚄+🚌 3.5h', t:'Innsbruck→Hallstatt'},
-    {p:[POI[4].pos,POI[5].pos], c:'#9b59b6', l:'🚄 3.5h', t:'Hallstatt→München'},
-    {p:[POI[5].pos,POI[6].pos], c:'#e67e22', l:'🚄 2h', t:'München→Schwangau(拜仁票)'},
-    {p:[POI[6].pos,POI[7].pos], c:'#1abc9c', l:'🚄 2h', t:'Schwangau→Augsburg(拜仁票)'},
-    {p:[POI[7].pos,POI[8].pos], c:'#1abc9c', l:'🚄 1h', t:'Augsburg→Nördlingen'},
-    {p:[POI[8].pos,POI[9].pos], c:'#1abc9c', l:'🚌 40min', t:'Nördlingen→Dinkelsbühl'},
-    {p:[POI[9].pos,POI[10].pos],c:'#1abc9c', l:'🚌 1h', t:'Dinkelsbühl→Rothenburg'},
-    {p:[POI[10].pos,POI[11].pos],c:'#1abc9c', l:'🚄 1h', t:'Rothenburg→Nürnberg直达'},
-    {p:[POI[11].pos,POI[12].pos],c:'#7f8c8d', l:'🚄 1h', t:'Nürnberg→Frankfurt(ICE)'},
-    {p:[POI[12].pos,POI[13].pos],c:'#7f8c8d', l:'🛫 1.5h', t:'Frankfurt→Milan MXP'},
-    {p:[POI[10].pos,POI[14].pos],c:'#7f8c8d', l:'🚄 4-5h', t:'Rothenburg→Berlin(ICE)', dash:'8,6'},
-    {p:[POI[14].pos,POI[13].pos],c:'#7f8c8d', l:'🛫 1.5h', t:'Berlin→Milan(廉航)', dash:'8,6'},
-  ];
+const ROUTES = [
+  {p:[POI[0].pos,POI[1].pos], t:'mixed',  l:'4h',   d:'米兰→Bolzano🚄2h45→Ortisei🚌1h'},
+  {p:[POI[1].pos,POI[2].pos], t:'train',  l:'1.5h', d:'Bolzano→Innsbruck 🚄'},
+  {p:[POI[2].pos,POI[3].pos], t:'mixed',  l:'3.5h', d:'Innsbruck→Hallstatt 🚄+🚌'},
+  {p:[POI[3].pos,POI[4].pos], t:'train',  l:'3.5h', d:'Hallstatt→München 🚄'},
+  {p:[POI[4].pos,POI[5].pos], t:'train',  l:'2h',   d:'München→Schwangau 🚄'},
+  {p:[POI[5].pos,POI[6].pos], t:'train',  l:'3.5h', d:'Schwangau→Rothenburg 🚄'},
+  {p:[POI[6].pos,POI[7].pos], t:'train',  l:'4-5h', d:'Rothenburg→Berlin 🚄'},
+  {p:[POI[7].pos,POI[0].pos], t:'flight', l:'1.5h', d:'Berlin→Milan 🛫 廉航'},
+];
 
-  ROUTES.forEach(function(r){
-    L.polyline(r.p,{color:r.c||'#888',weight:r.w||3.5,opacity:0.6,dashArray:r.dash||null}).addTo(map);
-    if(r.l){
-      var m=[(r.p[0][0]+r.p[1][0])/2,(r.p[0][1]+r.p[1][1])/2];
-      L.marker(m,{icon:L.divIcon({className:'info-label',html:r.l,iconSize:[60,20],iconAnchor:[30,10]})}).addTo(map).bindTooltip(r.t,{direction:'bottom'});
-    }
-  });
+ROUTES.forEach(function(r){
+  var tr = TRANS[r.t] || TRANS.train;
+  L.polyline(r.p, {
+    color: tr.color, weight: tr.weight, opacity: tr.opacity,
+    dashArray: tr.dash || null
+  }).addTo(map);
+  // Midpoint label with transport icon
+  var m = [(r.p[0][0]+r.p[1][0])/2, (r.p[0][1]+r.p[1][1])/2];
+  var iconHtml = '<div style="background:'+tr.color+';color:#fff;padding:4px 12px;border-radius:16px;font-size:13px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,0.25);border:2px solid #fff;white-space:nowrap;">'+tr.label+' <span style="font-weight:400;">'+r.l+'</span></div>';
+  L.marker(m, {
+    icon: L.divIcon({className:'', html:iconHtml, iconSize:[80,28], iconAnchor:[40,14]})
+  }).addTo(map).bindTooltip(r.d, {direction:'bottom'});
+});
 
-  POI.forEach(function(d){
-    var c=DAYS[d.d]||'#888';
-    var m=L.circleMarker(d.pos,{radius:8,fillColor:c,color:'#fff',weight:2.5,fillOpacity:0.9}).addTo(map);
-    m.bindTooltip(d.e+' '+d.t+' · '+d.l,{direction:'top',offset:[0,-8]});
-    var h='<div class="popup-box"><h3>'+d.e+' '+d.t+'</h3><span class="day-tag" style="background:'+c+'">'+d.l+'</span> <span style="color:#888;font-size:11px;">'+d.g+'</span>';
-    if(d.tm) h+='<div style="margin-top:3px;color:#e74c3c;font-size:12px;">⏰ '+d.tm+'</div>';
-    if(d.a.length){h+='<div class="section"><div class="section-title">🎯 必玩</div><ul>';d.a.forEach(function(x){h+='<li>'+x+'</li>'});h+='</ul></div>';}
-    if(d.f.length){h+='<div class="section"><div class="section-title">🍽️ 美食</div><ul>';d.f.forEach(function(x){h+='<li>'+x+'</li>'});h+='</ul></div>';}
-    if(d.tr) h+='<div class="transport"><b>🚌 交通：</b>'+d.tr.m+' · '+d.tr.d+'</div>';
-    h+='</div>';
-    m.bindPopup(h,{maxWidth:290});
-  });
+POI.forEach(function(d){
+  var c = COLORS[d.d] || '#888';
+  var m = L.circleMarker(d.pos, {radius:8, fillColor:c, color:'#fff', weight:2.5, fillOpacity:0.9}).addTo(map);
+  m.bindTooltip(d.e+' '+d.t+' · '+d.l, {direction:'top', offset:[0,-8]});
+  var h = '<div class="popup-box"><h3>'+d.e+' '+d.t+'</h3><span class="day-tag" style="background:'+c+'">'+d.l+'</span> <span style="color:#888;font-size:11px;">'+d.g+'</span>';
+  if(d.tm) h += '<div style="margin-top:3px;color:#e74c3c;font-size:12px;">⏰ '+d.tm+'</div>';
+  if(d.a.length){h += '<div class="section"><div class="section-title">🎯 必玩</div><ul>'; d.a.forEach(function(x){h += '<li>'+x+'</li>';}); h += '</ul></div>';}
+  if(d.f.length){h += '<div class="section"><div class="section-title">🍽️ 美食</div><ul>'; d.f.forEach(function(x){h += '<li>'+x+'</li>';}); h += '</ul></div>';}
+  if(d.tr) h += '<div class="transport"><b>🚌 交通：</b>'+d.tr.m+' · '+d.tr.d+'</div>';
+  h += '</div>';
+  m.bindPopup(h, {maxWidth:290});
+});
 
-  [[45.0,9.8,'🇮🇹 意大利'],[47.5,13.5,'🇦🇹 奥地利'],[49.0,11.0,'🇩🇪 德国'],[46.3,11.6,'🏔️ 多洛米蒂']].forEach(function(l){
-    L.marker([l[0],l[1]],{icon:L.divIcon({className:'info-label',html:l[2],iconSize:[80,22],iconAnchor:[40,11]})}).addTo(map);
-  });
+// Country labels
+[[45.0,9.8,'🇮🇹 意大利'],[47.5,13.5,'🇦🇹 奥地利'],[49.0,11.0,'🇩🇪 德国'],[46.3,11.6,'🏔️ 多洛米蒂']].forEach(function(l){
+  L.marker([l[0],l[1]], {icon:L.divIcon({className:'info-label', html:l[2], iconSize:[80,22], iconAnchor:[40,11]})}).addTo(map);
+});
 
-  L.control({position:'bottomright'}).onAdd=function(){
-    var e=L.DomUtil.create('div','legend-box');
-    e.innerHTML='<h4>🗺️ 图例</h4><div><span class="dot" style="background:#e74c3c"></span> Day 1-2 米兰</div><div><span class="dot" style="background:#3498db"></span> Day 3 科莫湖</div><div><span class="dot" style="background:#27ae60"></span> Day 4-5 多洛米蒂</div><div><span class="dot" style="background:#9b59b6"></span> Day 6-9 奥地利(Hallstatt)</div><div><span class="dot" style="background:#e67e22"></span> Day 9-10 慕尼黑+Schwangau</div><div><span class="dot" style="background:#1abc9c"></span> Day 10-14 浪漫之路+纽伦堡</div><div><span class="dot" style="background:#7f8c8d"></span> Day 14-16 柏林/法兰克福→米兰</div><hr style="margin:4px 0;border-color:#eee;"><div style="font-size:11px;color:#888;">📍 虚线=精简版柏林路线 · 点击标记看详情 · 滚轮缩放</div>';
-    return e;
-  }.addTo(map);
+// Legend
+L.control({position:'bottomright'}).onAdd = function(){
+  var e = L.DomUtil.create('div', 'legend-box');
+  e.innerHTML = '<h4>🗺️ 图例</h4>' +
+    '<div><span class="dot" style="background:#e74c3c"></span> Day 1 米兰</div>' +
+    '<div><span class="dot" style="background:#27ae60"></span> Day 2-3 多洛米蒂</div>' +
+    '<div><span class="dot" style="background:#9b59b6"></span> Day 4-6 奥地利(Hallstatt)</div>' +
+    '<div><span class="dot" style="background:#e67e22"></span> Day 7-8 慕尼黑+Schwangau</div>' +
+    '<div><span class="dot" style="background:#1abc9c"></span> Day 9-10 罗滕堡</div>' +
+    '<div><span class="dot" style="background:#7f8c8d"></span> Day 10-14 柏林+回程</div>' +
+    '<hr style="margin:4px 0;border-color:#eee;">' +
+    '<div><span class="trans-sample">🚄</span> 火车 <span class="trans-sample" style="margin-left:8px;">🛫</span> 飞机</div>' +
+    '<div style="font-size:11px;color:#888;">📍 点击标记看详情 · 滚轮缩放</div>';
+  return e;
+}.addTo(map);
 
-  L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+L.control.scale({imperial:false, position:'bottomleft'}).addTo(map);
 
 } // end if(typeof L)
 </script>
